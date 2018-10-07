@@ -10,8 +10,6 @@ output:
 ```{r, echo=FALSE}
 rm(list=ls())
 
-setwd("C:\\Users\\Administrador\\Desktop\\Maestría\\Datamining Ciencia y Tecnologia\\guia_TP_astronomia_2018")
-
 library(tidyverse)
 library(ggplot2)
 library(tidyr)
@@ -28,17 +26,17 @@ library(magrittr)
 # Carga de archivos en R
 #
 # Carga del catalogo Hipparcos
-hip <- read_excel("hyades_source.xlsx", sheet = 2)
+hip <- read_excel("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 2)
 
 #Carga del Catalogo Symbad
-symbad <- read_excel("hyades_source.xlsx", sheet = 1)
+symbad <- read_excel("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 1)
 
 #Carga del Catalogo Tycho
-tycho <- read_excel("hyades_source.xlsx", sheet = 3)
+tycho <- read_excel("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 3)
 
 # Los estrellas en el siguiente archivo son las unicas estrellas que sabemos que son 
 # Hyades y ademas conocemos su ID en Hipparcos
-idcruz <- read_excel("id_cruzada_Symbad_Hipparcos.xlsx", col_names = c("HD","HIP"))
+idcruz <- read_excel("..//00.Datos_y_TP//id_cruzada_Symbad_Hipparcos.xlsx", col_names = c("HD","HIP"))
 
 ```
 
@@ -70,7 +68,7 @@ hip_hyades <- hip %>%
 hip_hyades
 ```
 
-##Se analiza la distribución de los errores.
+##Se analiza la distribuci?n de los errores.
 
 ```{r}
 
@@ -86,9 +84,9 @@ ggarrange(p1, p2, nrow = 2, ncol = 1)
 
 ```
 
->Las distribuciones parecen ser normales excepto por la presencia de un outlier en ambos casos. La diferencia entre los valores de RA parecen tener menor dispersión que la distribución de las diferencias de los valores de DE.
+>Las distribuciones parecen ser normales excepto por la presencia de un outlier en ambos casos. La diferencia entre los valores de RA parecen tener menor dispersi?n que la distribuci?n de las diferencias de los valores de DE.
 
->A continuación se plotean las Hyades en dos ejes de acuerdo a las diferencias presentan en su posición en ambos catálogos.
+>A continuaci?n se plotean las Hyades en dos ejes de acuerdo a las diferencias presentan en su posici?n en ambos cat?logos.
 
 
 ```{r}
@@ -100,9 +98,9 @@ ggplot(hip_hyades,aes(y=dif_de, x = dif_ra)) +
 
 ```
 
->En el siguiente gráfico se puede observar como en general el error de posicionamiento de la estrella en ambos catálogos se encuentra mayormente concentrado en el 6to decimal de la medición, excepto para la estrella 20441 que tiene su error en el 5to decimal.
+>En el siguiente gr?fico se puede observar como en general el error de posicionamiento de la estrella en ambos cat?logos se encuentra mayormente concentrado en el 6to decimal de la medici?n, excepto para la estrella 20441 que tiene su error en el 5to decimal.
 
->A continuación se filtra el dataframe para mostrar algunos de los casos reflejados en el gráfico anterior.
+>A continuaci?n se filtra el dataframe para mostrar algunos de los casos reflejados en el gr?fico anterior.
 
 ```{r, echo=FALSE}
 
@@ -112,7 +110,7 @@ hip_hyades %>% filter(., HIP == "22524" | HIP == "19796" | HIP == "20441" | HIP 
 
 ```
 
-##En el siguiente gráfico a continuación se muestran las estrellas que fueron identificadas como Hyades efectivamente en el Catálogo Hipparcos.
+##En el siguiente gr?fico a continuaci?n se muestran las estrellas que fueron identificadas como Hyades efectivamente en el Cat?logo Hipparcos.
 
 ```{r, echo=FALSE}
 hip <- hip %>% 
@@ -281,9 +279,9 @@ ggplot(symbad.aumentado2, aes(x = dist, fill = dist<0.0001)) +
   geom_histogram(bins = 48)
 ```
 
-En el siguiente gráfico, se puede observar que las potenciales Hyades en el catálogo de Hipparcos poseen distancias demasiado pequeñas con respecto a su estrella candidata dentro del catálogo Symbad. Al separar los grupos en función de su distancia, teniendo en cuenta solamente distancias inferiores al 4 decimal como "verdaderas" Hyades, se puede observar que la población celeste se concentra en su totalidad dentro del 1er bin de la distribución.
+En el siguiente gr?fico, se puede observar que las potenciales Hyades en el cat?logo de Hipparcos poseen distancias demasiado peque?as con respecto a su estrella candidata dentro del cat?logo Symbad. Al separar los grupos en funci?n de su distancia, teniendo en cuenta solamente distancias inferiores al 4 decimal como "verdaderas" Hyades, se puede observar que la poblaci?n celeste se concentra en su totalidad dentro del 1er bin de la distribuci?n.
 
-A continuación se filtra el listado final de Hyades tomando como referencia las distancias inferiores al 4to decimal.
+A continuaci?n se filtra el listado final de Hyades tomando como referencia las distancias inferiores al 4to decimal.
 
 ```{r}
 symbad.aumentado2 %>%
