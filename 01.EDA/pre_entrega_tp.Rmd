@@ -1,0 +1,295 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+
+```{r, echo=FALSE}
+rm(list=ls())
+
+setwd("C:\\Users\\Administrador\\Desktop\\Maestría\\Datamining Ciencia y Tecnologia\\guia_TP_astronomia_2018")
+
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(purrr)
+library(readxl)
+library(ggpubr)
+library(magrittr)
+```
+
+```{r , echo=FALSE}
+# Busqueda de estrellas idÃ©nticas en diferentes catalogos
+
+# Carga de archivos en R
+#
+# Carga del catalogo Hipparcos
+hip <- read_excel("hyades_source.xlsx", sheet = 2)
+
+#Carga del Catalogo Symbad
+symbad <- read_excel("hyades_source.xlsx", sheet = 1)
+
+#Carga del Catalogo Tycho
+tycho <- read_excel("hyades_source.xlsx", sheet = 3)
+
+# Los estrellas en el siguiente archivo son las unicas estrellas que sabemos que son 
+# Hyades y ademas conocemos su ID en Hipparcos
+idcruz <- read_excel("id_cruzada_Symbad_Hipparcos.xlsx", col_names = c("HD","HIP"))
+
+```
+
+```{r, echo=FALSE}
+# Los identificadores tienen un espacio en blanco al final
+symbad$identifier <- sub("\\W$", "", symbad$identifier)
+
+# Agregamos una variable al dataframe Symbad indicando cuales 
+# de las Hyades tienen ID en Hipparcos
+symbad$idHip <- symbad$identifier %in% idcruz$HD
+
+
+```
+
+##Se cruzan los datos de Hyades identificadas dentro de Hipparcos para analizar con mayor detenimiento.
+
+```{r}
+idcruz <- idcruz %>%
+  mutate(HIP_2 = sub("HIP ","", HIP))
+  
+
+hip_hyades <- hip %>%
+  mutate(HIP = as.character(HIP)) %>%
+  inner_join(., idcruz, by = c("HIP" = "HIP_2")) %>%
+  inner_join(., symbad, by = c("HD" = "identifier")) %>%
+  mutate(dif_ra = RA_J2000.x - RA_J2000.y) %>%
+  mutate(dif_de = DE_J2000.x - DE_J2000.y)
+
+hip_hyades
+```
+
+##Se analiza la distribución de los errores.
+
+```{r}
+
+p1 <- ggplot(hip_hyades,aes(x=dif_de)) +
+  geom_density() +
+  theme_classic()
+
+p2 <- ggplot(hip_hyades,aes(x=dif_ra)) +
+  geom_density() +
+  theme_classic()
+
+ggarrange(p1, p2, nrow = 2, ncol = 1)
+
+```
+
+>Las distribuciones parecen ser normales excepto por la presencia de un outlier en ambos casos. La diferencia entre los valores de RA parecen tener menor dispersión que la distribución de las diferencias de los valores de DE.
+
+>A continuación se plotean las Hyades en dos ejes de acuerdo a las diferencias presentan en su posición en ambos catálogos.
+
+
+```{r}
+
+ggplot(hip_hyades,aes(y=dif_de, x = dif_ra)) +
+  geom_point(colour = "blue") +
+  geom_text(aes(label=HIP), nudge_y = 0.000001) +
+  theme_minimal()
+
+```
+
+>En el siguiente gráfico se puede observar como en general el error de posicionamiento de la estrella en ambos catálogos se encuentra mayormente concentrado en el 6to decimal de la medición, excepto para la estrella 20441 que tiene su error en el 5to decimal.
+
+>A continuación se filtra el dataframe para mostrar algunos de los casos reflejados en el gráfico anterior.
+
+```{r, echo=FALSE}
+
+
+hip_hyades %>% filter(., HIP == "22524" | HIP == "19796" | HIP == "20441" | HIP == "20916") %>% select(., HIP, RA_J2000.x, RA_J2000.y, dif_ra, DE_J2000.x, DE_J2000.y, dif_de)
+
+
+```
+
+##En el siguiente gráfico a continuación se muestran las estrellas que fueron identificadas como Hyades efectivamente en el Catálogo Hipparcos.
+
+```{r, echo=FALSE}
+hip <- hip %>% 
+  mutate(HIP = as.character(HIP)) %>%
+  left_join(., hip_hyades[,c(1,9)], by = "HIP") %>% 
+  mutate(Hyades = if_else(is.na(HD) == T, "NA", "Hyades"))
+    
+
+ggplot(hip,aes(y=DE_J2000, x = RA_J2000, color = Hyades)) +
+  geom_point() +
+  #geom_text(aes(label=HIP), nudge_y = 0.000001) +
+  theme_minimal()
+
+
+```
+
+## Preparacion de la grilla espacial
+## numero de intervalos (igual sobre AR y DE)
+
+```{r, echo=FALSE}
+
+nint <- 50
+ra.min <- min(hip$RA_J2000)
+ra.max <- max(hip$RA_J2000)
+de.min <- min(hip$DE_J2000)
+de.max <- max(hip$DE_J2000)
+ra.dif <- ra.max - ra.min
+de.dif <- de.max - de.min
+ra.sp <- ra.dif/(nint-1)
+de.sp <- de.dif/(nint-1)
+```
+
+## Calculo de la ubicacion de las estrellas de Hipparcos en la grilla
+## Nuestro vecindario estarÃ¡ delimitado por un cuadrado 3x3
+
+```{r, echo=FALSE}
+
+vecx <- c(-1,0,1)
+vecy <- c(-1,0,1)
+ind.estrella <- data.frame(matrix(nrow=nrow(hip), ncol=2))
+names(ind.estrella) <- c("rec","dec")
+ind.estrella$rec <- floor((hip$RA_J2000 - ra.min)/ra.sp) + 1 
+ind.estrella$dec <- floor((hip$DE_J2000 - de.min)/de.sp) + 1 
+```
+
+## Tambien calculamos para las Hyades de Symbad su ubicaciÃ³n en la grilla
+
+```{r, echo=FALSE}
+symbad$rac <- floor((symbad$RA_J2000 - ra.min)/ra.sp) + 1 
+symbad$dec <- floor((symbad$DE_J2000 - de.min)/de.sp) + 1 
+```
+
+# Se crean dos funciones auxiliares
+
+```{r, echo=FALSE}
+
+
+obtener.vecinas <- function(consulta){
+# Esta funcion busca las estrellas mas proximas a una estrella del 
+# listado Symbad  
+  # primero busca cuales son las celdas a consultar
+  exstar <- consulta$rac
+  eystar <- consulta$dec
+  exstar.vec <- (exstar + vecx) [exstar + vecx > 0]
+  eystar.vec <- (eystar + vecy) [eystar + vecy > 0]
+  star.vec <- expand.grid(rec=exstar.vec, dec=eystar.vec)
+  # luego se extrae un dataframe con las estrellas que estan en la zona de consulta
+  vecinas <- hip[ind.estrella$rec == star.vec$rec[1] & ind.estrella$dec == star.vec$dec[1],]
+  for(j in 2:nrow(star.vec)) {
+    vecinas <- rbind(vecinas, hip[ind.estrella$rec == star.vec$rec[j] & ind.estrella$dec == star.vec$dec[j],] )  
+  }
+  return(vecinas)
+  # retorna el dataframe
+}
+
+mas.cercana <- function(consulta, vecinas){
+# Esta funcion a partir de la conuslta Symbad y del listado de vecinas
+# busca la mas cercana  
+  mindist <- sqrt(sum((consulta[c(6,8)] - vecinas[1,c(2,3)])^2))
+  masvecina <- vecinas[1,]
+  for(i in 2:nrow(vecinas)){
+    nvd = sqrt(sum((consulta[c(6,8)] - vecinas[i,c(2,3)])^2))
+    if(nvd < mindist) {
+      mindist = nvd
+      masvecina <- vecinas[i,]
+    }
+  }
+  # la funcion retorna la distancia y los datos de la estrella mas cercana
+  # una mejora de esta funcion seria generar una alarma si dos estrellas estan igual de
+  # cerca a la consulta
+  return(list(mas.vecina=masvecina, dist.min=mindist))
+}
+```
+
+## Obtenemos las estrellas de Hipparcos mas cercanas a las de Symbad y su distancia
+
+
+```{r, echo=FALSE}
+
+symbad.dists <- array()
+symbad.mas.vecina <- data.frame("HIP"=NA, "RA_J2000"=NA, "DE_J2000"=NA, "Plx"=NA, 
+                                "pmRA"=NA, "pmDE"=NA, "Vmag"=NA, "B_V"=NA)
+```
+
+## Iteramos por cada estrella
+
+```{r, echo=FALSE}
+for(j in 1:nrow(symbad)){
+  vecinas <- obtener.vecinas(symbad[j,])
+  posibles.iguales <- mas.cercana(symbad[j,], vecinas )
+  symbad.dists[j] <- posibles.iguales$dist.min
+  symbad.mas.vecina[j,] <- posibles.iguales$mas.vecina
+}
+```
+# El vector de distancias
+
+```{r}
+
+symbad.dists
+
+```
+
+# El dataframe de estrellas mÃ¡s cercanas en Hipparcos a las de Symbad.
+
+```{r}
+symbad.mas.vecina
+
+```
+
+# Como se ven los datasets superpuestos
+
+```{r}
+
+plot(symbad$RA_J2000, symbad$DE_J2000, pch=20, col="blue")
+points(symbad.mas.vecina$RA_J2000, symbad.mas.vecina$DE_J2000, pch=21, col="red")
+legend(5.2, 23, legend=c("Hip", "Sym"),col=c("red", "blue"), lty=1, cex=0.8)
+```
+
+## Podemos agregar la informacion obtenida a un dataframe Symbad aumentado
+
+```{r}
+
+symbad.aumentado <- data.frame(symbad, dist=symbad.dists, cercanaHip=symbad.mas.vecina$HIP )
+```
+
+## Finalmente agregamos al dataframe aumentado el ID Hipparcos de la identificacion cruzada
+
+```{r}
+
+symbad.aumentado$idcruzHip <- NA
+for(i in 1:nrow(symbad.aumentado)){
+  if(symbad.aumentado$identifier[i] %in% idcruz$HD) {
+    symbad.aumentado$idcruzHip[i] <- idcruz$HIP[idcruz$HD==symbad.aumentado$identifier[i]]
+  }
+}
+symbad.aumentado$idcruzHip <- as.numeric(sub("HIP ", "", symbad.aumentado$idcruzHip))
+```
+
+```{r}
+
+symbad.aumentado2 <- symbad.aumentado %>% left_join(., hip[,c(1,2,3)], by = c("cercanaHip" = "HIP")) %>% mutate(dif_ra = RA_J2000.x - RA_J2000.y) %>% mutate(dif_de = DE_J2000.x - DE_J2000.y)
+
+```
+```{r}
+ggplot(symbad.aumentado2, aes(x = dist, fill = dist<0.0001)) +
+  geom_histogram(bins = 48)
+```
+
+En el siguiente gráfico, se puede observar que las potenciales Hyades en el catálogo de Hipparcos poseen distancias demasiado pequeñas con respecto a su estrella candidata dentro del catálogo Symbad. Al separar los grupos en función de su distancia, teniendo en cuenta solamente distancias inferiores al 4 decimal como "verdaderas" Hyades, se puede observar que la población celeste se concentra en su totalidad dentro del 1er bin de la distribución.
+
+A continuación se filtra el listado final de Hyades tomando como referencia las distancias inferiores al 4to decimal.
+
+```{r}
+symbad.aumentado2 %>%
+  select(.,identifier , cercanaHip, idcruzHip, dist, dif_ra, dif_de) %>%
+  group_by(cercanaHip) %>%
+  filter(dist < 0.001)
+
+```
+
