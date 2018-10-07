@@ -284,10 +284,15 @@ En el siguiente gr?fico, se puede observar que las potenciales Hyades en el cat?
 A continuaci?n se filtra el listado final de Hyades tomando como referencia las distancias inferiores al 4to decimal.
 
 ```{r}
-symbad.aumentado2 %>%
+symbad_seleccion <- symbad.aumentado2 %>%
   select(.,identifier , cercanaHip, idcruzHip, dist, dif_ra, dif_de) %>%
   group_by(cercanaHip) %>%
   filter(dist < 0.001)
 
+symbad_seleccion
+```
+
+```{r}
+write_csv(symbad_seleccion, "..//00.Datos_y_TP//Hyades_seleccion.csv")
 ```
 
