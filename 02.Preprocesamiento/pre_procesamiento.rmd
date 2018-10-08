@@ -1,0 +1,84 @@
+---
+title: "Preprocesamiento"
+author: "JMason88"
+date: "7 de octubre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Limpio Memoria
+
+```{r}
+rm(list = ls())
+
+```
+
+#Llamo librerías y llamo script de 'Mapeo de Hyades' para traer el dataset final.
+
+```{r}
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+source("mapeo_hyades.r")
+
+hip <- mapeo_hyades()
+
+
+```
+
+Analizo Valores faltantes
+
+```{r}
+
+sapply(hip, function(x) sum(is.na(x)))
+
+```
+
+#Filtro las filas por los valores faltantes
+
+```{r}
+
+hip[is.na(hip$`B-V`),]
+
+```
+
+2 opciones frentes a las 15 instancias:
+  -Remover instancias faltantes del dataframe
+  -Usar algún tipo de estrategia para imputar datos faltantes
+
+Opcion1: Remover 15 estrellas del dataframe
+
+```{r}
+hip_sin_faltantes <- hip[!is.na(hip$`B-V`),]
+
+sapply(hip_sin_faltantes, function(x) sum(is.na(x)))
+```
+
+Opcion2: Imputar valores faltantes
+```{r}
+library(caret)
+library(RANN)
+
+traindata <- hip[!is.na(hip$`B-V`),-1]
+
+train(x = traindata[,-7],
+      y = traindata$`B-V`,
+      method = 'knn',
+      tuneLength = 15)
+
+```
+
+```{r}
+library(RANN)
+hip_faltantes_imputados <- predict(modelo_faltantes_imputados, newdata = hip)
+sapply(hip_faltantes_imputados, function(x) sum(is.na(x)))
+
+hip_index_faltantes <- c(hip[is.na(hip$`B-V`),]$HIP)
+
+hip_faltantes_imputados[hip_faltantes_imputados$HIP==hip_index_faltantes,]
+```
+
+
