@@ -1,0 +1,89 @@
+---
+title: "modelado_validacion"
+author: "JMason88"
+date: "14 de octubre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Limpio Memoria
+
+```{r}
+rm(list = ls())
+
+```
+
+#Llamo librerías
+
+```{r}
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(cluster)
+library(factoextra)
+library(NbClust)
+
+```
+
+Levanto primera version de pre-procesamiento.
+
+```{r}
+hip1 <- read_csv("./02.Preprocesamiento/hip_version1.csv")
+
+```
+
+Análisis de tendencia de clusterización ¿existen indicios para pensar que este dataset podría ser clusterizable?
+
+
+Grafico PCA para ver posicionamiento de la Hyades
+
+```{r}
+library(ggsci)
+fviz_pca_biplot(prcomp(hip1[,-c(1,9)]), title = "PCA - Hipparcos", 
+             habillage = hip1$Symbad_Hyades,  palette = "uchicago",
+             geom = "point", ggtheme = theme_classic(),
+             legend = "bottom")
+
+
+```
+
+A través del gráfico de PCA se puede observar que las Hyades se encuentran concentradas.
+
+```{r}
+set.seed(123)
+
+gradient.color <- list(low = "steelblue",  high = "white")
+
+hip1 %>% 
+  select(., -HIP, -Symbad_Hyades) %>%
+  get_clust_tendency(n=nrow(.)-1, gradient = gradient.color) #Ojo que tarda mucho con n-1 grados de libertad
+
+
+```
+
+El estadístico de Hopkins parecería indicar que este conjunto no es clusterizable, ya que su valor es cercano a 0. (Un conjunto con fuerte tendencia a la clusterización debería tener un estadístico >0.5)
+
+Sin embargo para este caso no queremos clusterizar perfectamente todo el dataset. Solamente nos interesa clusterizar las hyades.
+
+```{r}
+
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
