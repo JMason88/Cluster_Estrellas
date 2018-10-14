@@ -293,6 +293,6 @@ symbad_seleccion
 ```
 
 ```{r}
-write_csv(symbad_seleccion, "..//00.Datos_y_TP//Hyades_seleccion.csv")
+#write_csv(symbad_seleccion, "..//00.Datos_y_TP//Hyades_seleccion.csv")
 ```
 

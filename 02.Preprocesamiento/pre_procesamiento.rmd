@@ -26,9 +26,8 @@ library(readxl)
 source("mapeo_hyades.r")
 
 hip <- mapeo_hyades()
-
-
 ```
+
 
 Analizo Valores faltantes
 
@@ -38,6 +37,7 @@ sapply(hip, function(x) sum(is.na(x)))
 
 ```
 
+
 #Filtro las filas por los valores faltantes
 
 ```{r}
@@ -46,11 +46,9 @@ hip[is.na(hip$`B-V`),]
 
 ```
 
-2 opciones frentes a las 15 instancias:
-  -Remover instancias faltantes del dataframe
-  -Usar algún tipo de estrategia para imputar datos faltantes
+En analisis de cluster, un método usualmente aceptado es remover instancias que posean faltantes de la clusterización inicial. Luego con clusters bien definidos, se suele intentar mapear las instancias con faltantes a los clusters más parecidos.
 
-Opcion1: Remover 15 estrellas del dataframe
+Con esta posibilidad en mente, removeremos 15 estrellas del dataframe para trabajar con un conjunto de datos completos a la hora de clusterizar.
 
 ```{r}
 hip_sin_faltantes <- hip[!is.na(hip$`B-V`),]
@@ -58,28 +56,58 @@ hip_sin_faltantes <- hip[!is.na(hip$`B-V`),]
 sapply(hip_sin_faltantes, function(x) sum(is.na(x)))
 ```
 
-Opcion2: Imputar valores faltantes
+
+A continuación se procederá a escalar y estandarizar las variables para evitar que las dimensiones de estas incidan o afecten las medidas de distancia dentro del análisis de cluster.
+
+Para las variables RA_J2000 y DE_J2000, se realizará un escalado especial que permita conservar las proporciones entre ambas variables, ya que consideramos que una "estandarización" para estas dos podría resultar en una posible distorsión de la medición que se posee de la proyección de la estrella en el cielo.
+
 ```{r}
-library(caret)
-library(RANN)
+max_RA <- max(hip_sin_faltantes$RA_J2000)
+min_RA <- min(hip_sin_faltantes$RA_J2000)
+max_DE <- max(hip_sin_faltantes$DE_J2000)
+min_DE <- min(hip_sin_faltantes$DE_J2000)
 
-traindata <- hip[!is.na(hip$`B-V`),-1]
-
-train(x = traindata[,-7],
-      y = traindata$`B-V`,
-      method = 'knn',
-      tuneLength = 15)
+max_RA
+min_RA
+max_DE
+min_DE
 
 ```
 
 ```{r}
-library(RANN)
-hip_faltantes_imputados <- predict(modelo_faltantes_imputados, newdata = hip)
-sapply(hip_faltantes_imputados, function(x) sum(is.na(x)))
 
-hip_index_faltantes <- c(hip[is.na(hip$`B-V`),]$HIP)
+hip_version1 <- hip_sin_faltantes %>% 
+  mutate(RA_J2000 = (max_RA-RA_J2000)/(max_RA-min_RA)) %>%
+  mutate(DE_J2000 = (max_DE-DE_J2000)/(max_DE-min_DE)) %>%
+  mutate(Plx = scale(.$Plx)) %>%
+  mutate(pmRA = scale(.$pmRA)) %>%
+  mutate(pmDE = scale(.$pmDE)) %>%
+  mutate(Vmag = scale(.$Vmag)) %>%
+  mutate('B-V' = scale(.$`B-V`))
 
-hip_faltantes_imputados[hip_faltantes_imputados$HIP==hip_index_faltantes,]
+summary(hip_version1)
+```
+
+```{r}
+
+write_csv(hip_version1, path = 'hip_version1.csv')
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
 ```
 
 
