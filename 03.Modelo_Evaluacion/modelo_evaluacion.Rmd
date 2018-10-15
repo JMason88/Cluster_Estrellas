@@ -69,7 +69,66 @@ El estadístico de Hopkins parecería indicar que este conjunto no es clusteriza
 
 Sin embargo para este caso no queremos clusterizar perfectamente todo el dataset. Solamente nos interesa clusterizar las hyades.
 
+A continuación realizará el análisis de Cluster tomando en cuenta distintas medidas de distancia posibles.
+
+
 ```{r}
+
+kmeans_hip <- hip1 %>% 
+  select(., -c(HIP, Symbad_Hyades)) %>%
+  NbClust(
+  data = ., 
+  distance = "euclidean",
+  min.nc = 2,
+  max.nc = 20,
+  method = "ward.D2", 
+  index = "all"
+  )
+
+```
+
+```{r}
+hip_clust <- cbind(hip1, kmeans_hip[["Best.partition"]])
+fviz_pca_ind(prcomp(hip_clust[,-c(1,9,10)]), 
+                title = "PCA - Hipparcos Kmeans",
+                habillage = hip_clust$`kmeans_hip[["Best.partition"]]`,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+```
+
+```{r}
+hip_clust %>% filter(., Symbad_Hyades == T)
+```
+
+
+```{r}
+
+distances <- c(
+  "euclidean",
+  "manhattan",
+  "canberra",
+  "binary",
+  "minkowski"
+)
+
+indexes <- c(
+  
+)
+
+for (d in distances){
+  for (i in indexes){
+    NbClust(
+    data = ., 
+    distance = distances, 
+    min.nc = 2, 
+    max.nc = 50,
+    method = "kmeans", 
+    index = list_of_index
+    )
+  }
+}
 
 
 
