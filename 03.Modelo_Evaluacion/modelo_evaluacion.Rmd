@@ -71,6 +71,57 @@ Sin embargo para este caso no queremos clusterizar perfectamente todo el dataset
 
 A continuación realizará el análisis de Cluster tomando en cuenta distintas medidas de distancia posibles.
 
+##Analisis utilizando K-medias
+
+-Distancia Euclídea
+
+```{r}
+source("NbClust2_kmeans.r")
+kmeans_euclid <- NbClust2(data = hip1[,-c(1,9)], distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid
+```
+
+-Distancia Máxima
+
+```{r}
+kmeans_max <- NbClust2(data = hip1[,-c(1,9)], distance = "maximum", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_max
+```
+
+-Distancia de Manhattan
+
+```{r}
+kmeans_manhattan <- NbClust2(data = hip1[,-c(1,9)], distance = "manhattan", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_manhattan
+
+```
+
+-Distancia de Canberra
+
+```{r}
+kmeans_canberra <- NbClust2(data = hip1[,-c(1,9)], distance = "canberra", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_canberra
+
+```
+
+-Distancia Binaria
+
+```{r}
+
+kmeans_bin <- NbClust2(data = hip1[,-c(1,9)], distance = "binary", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_bin
+
+
+```
+
+-Distancia de Minkowski
+
+```{r}
+kmeans_minkowski <- NbClust2(data = hip1[,-c(1,9)], distance = "minkowski", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_minkowski
+
+```
+
 
 ```{r}
 
