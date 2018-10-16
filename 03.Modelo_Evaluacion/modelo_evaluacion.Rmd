@@ -155,34 +155,15 @@ hip_clust %>% filter(., Symbad_Hyades == T)
 
 
 ```{r}
+hip_clust <- hip1 %>% cbind(., 
+                            kmeans_euclid = kmeans_euclid[["Best.partition"]], 
+                            kmeans_max = kmeans_max[["Best.partition"]], 
+                            kmeans_manhattan = kmeans_manhattan[["Best.partition"]], 
+                            kmeans_canberra = kmeans_canberra[["Best.partition"]], 
+                            kmeans_bin = kmeans_bin[["Best.partition"]], 
+                            kmeans_minkowski = kmeans_minkowski[["Best.partition"]])
 
-distances <- c(
-  "euclidean",
-  "manhattan",
-  "canberra",
-  "binary",
-  "minkowski"
-)
-
-indexes <- c(
-  
-)
-
-for (d in distances){
-  for (i in indexes){
-    NbClust(
-    data = ., 
-    distance = distances, 
-    min.nc = 2, 
-    max.nc = 50,
-    method = "kmeans", 
-    index = list_of_index
-    )
-  }
-}
-
-
-
+hip_clust %>% filter(., Symbad_Hyades == T) %>% select(., c(1,9:15))
 ```
 
 ```{r}
