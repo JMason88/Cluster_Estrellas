@@ -32,7 +32,7 @@ library(NbClust)
 Levanto primera version de pre-procesamiento.
 
 ```{r}
-hip1 <- read_csv("./02.Preprocesamiento/hip_version1.csv")
+hip1 <- read_csv("../02.Preprocesamiento/hip_version1.csv")
 
 ```
 
