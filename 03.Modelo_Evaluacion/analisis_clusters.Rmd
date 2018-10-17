@@ -1,0 +1,65 @@
+---
+title: "Analisis_Resultados"
+author: "Juan Ignacio Etcheberry Mason"
+date: "October 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+rm(list = ls())
+
+```
+
+
+
+```{r}
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(cluster)
+library(factoextra)
+library(NbClust)
+
+```
+
+```{r}
+hip_clust <- read_csv('./03.Modelo_evaluacion/hip_clust.csv')
+```
+
+```{r}
+
+summary <- hip_clust %>% select(., -c(1:8)) %>% gather(.,distance,cluster,-Symbad_Hyades)
+
+table( summary$distance,summary$cluster, summary$Symbad_Hyades)
+```
+
+```{r}
+
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
