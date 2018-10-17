@@ -30,7 +30,7 @@ library(NbClust)
 ```
 
 ```{r}
-hip_clust <- read_csv('./03.Modelo_evaluacion/hip_clust.csv')
+hip_clust <- read_csv('../03.Modelo_evaluacion/hip_clust.csv')
 ```
 
 ```{r}
