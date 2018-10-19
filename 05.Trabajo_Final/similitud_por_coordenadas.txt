@@ -1,0 +1,39 @@
+Punto opcional #1
+=================
+En un proceso de busqueda de equivalencias entre estrellas de dos lotes, donde el patron de equivalencia es la similitud de coordenadas, utilizaremos la distancia entre las coordenadas de ambos lotes para determinar cuales son los pares correspondientes.
+El algoritmo mas trivial es medir las distancias de todas las estrellas de un lote contra todas las del otro. Elegir el par con la menor distancia de todas. Se quitan ambas y se realiza toda la comparacion nuevamente.
+  
+  Dos lotes de estrellas: A y B
+  La cantidad de estrellas en el lote A es NA, y la cantidad de estrellas del lote B es NB
+  
+  1. Calculamos NA x NB distancias, armamos una tabla con ID de estrela A, ID de estrella B y la distancia
+  2. Ordenamos la tabla por distancias de menor a mayor
+  3. Elegimos el primer elemento. Marcamos la estrella del lote A y la del lote B como "par"
+  4. Quitamos de la tabla todas las filas que contengan esas estrellas, con el resto de la tabla volvemos al punto 3
+  
+  La complejidad del proceso es:
+     a. un calculo de distancias de tamaño NA * NB
+	 b. recorrido de una tabla de distancias de NA * NB filas
+	 
+El algoritmo de comparacion por grillas propuesto en el TP, propone asignar a cada estrella de ambos a la celda de una grilla utilizando la discretizacion de los valores de las coordenadas para determinar la celda. 
+Luego realizaremos los calculos de distancias entre estrellas de ambos lotes solo de las celdas proximas.
+
+  Dos lotes de estrellas: A y B
+  La cantidad de estrellas en el lote A es NA, y la cantidad de estrellas del lote B es NB
+  La grilla es de K filas y K columnas
+  La zona de vecindad es una grilla pequeña de L * L celdas
+  
+  1. Discretizamos las coordenadas de las NA + NB estrellas y las asignamos a la celda correspondiente, en promedio cada celda recibe NA/K^2 y NB/K^2 estrellas
+  2. Las zonas de vecindad son de a lo sumo L * L celdas. Ya que las de los bordes tienen menos celdas.
+  3. Calculamos las distancias entre cada estrella del Lote A, y las estrellas de las celdas vecinas a esta. La tabla de distancias tiene NA * NB/K^2 * L^2 filas
+  4. Elegimos el primer elemento. Marcamos la estrella del lote A y la del lote B como "par"
+  5. Quitamos de la tabla todas las filas que contengan esas estrellas, con el resto de la tabla volvemos al punto 6  
+
+  La complejidad del proceso es:
+     a. discretizacion de (NA + NB) * 2 coordenadas
+     b. un calculo de distancias de tamaño NA * NB * L^2 / K^2
+	 c. recorrido de una tabla de distancias de NA * NB * L^2 / K^2 filas
+
+	 Por lo tanto cuanto mayor sea la relacion entre K y L (K/L), mas eficiente y menos costoso en tiempo de calculo resultara este segundo algoritmo.
+	 	 
+Generalizando para un tamaño teorico de lotes de N , el proceso de comparacion por grilla va a ser de complejidad O(N^2 * L^2 / K^2)  comparado contra O(N^2)
