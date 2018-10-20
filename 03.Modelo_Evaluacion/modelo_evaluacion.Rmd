@@ -124,30 +124,40 @@ kmeans_minkowski
 
 
 ```{r}
-
-kmeans_hip <- hip1 %>% 
-  select(., -c(HIP, Symbad_Hyades)) %>%
-  NbClust(
-  data = ., 
-  distance = "euclidean",
-  min.nc = 2,
-  max.nc = 20,
-  method = "ward.D2", 
-  index = "all"
-  )
-
-```
-
-```{r}
-hip_clust <- cbind(hip1, kmeans_hip[["Best.partition"]])
+hip_clust <- cbind(hip1, kmeans_bin[["Best.partition"]])
 fviz_pca_ind(prcomp(hip_clust[,-c(1,9,10)]), 
                 title = "PCA - Hipparcos Kmeans",
-                habillage = hip_clust$`kmeans_hip[["Best.partition"]]`,
+                habillage = hip_clust$`kmeans_bin[["Best.partition"]]`,
                 palette = "uchicago",
                 geom = "point", 
                 ggtheme = theme_classic(),
                 legend = "bottom", axes = c(1,2))
 ```
+
+```{r}
+set.seed(1)
+hip_kmeans_final <- hip1 %>% select(., -c(1,9)) %>% kmeans(., 2)
+
+table(hip_kmeans_final$cluster)
+
+hip_clust1 <- cbind(hip1, hip_kmeans_final$cluster)
+fviz_pca_ind(prcomp(hip_clust1[,-c(1,9,10)]), 
+                title = "PCA - Hipparcos Kmeans",
+                habillage = hip_kmeans_final$cluster,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+```
+
+```{r}
+sil_kmeans_final <- silhouette(hip_kmeans_final$cluster, dist(hip1[,-c(1,9)], method = "canberra"))
+
+plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
+
+```
+
+
 
 ```{r}
 hip_clust %>% filter(., Symbad_Hyades == T)
@@ -164,6 +174,8 @@ hip_clust <- hip1 %>% cbind(.,
                             kmeans_minkowski = kmeans_minkowski[["Best.partition"]])
 
 hip_clust %>% filter(., Symbad_Hyades == T) %>% select(., c(1,9:15))
+
+write_csv(hip_clust, "hip_clust.csv")
 ```
 
 ```{r}
