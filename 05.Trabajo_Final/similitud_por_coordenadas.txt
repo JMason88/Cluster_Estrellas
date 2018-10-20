@@ -37,3 +37,41 @@ Luego realizaremos los calculos de distancias entre estrellas de ambos lotes sol
 	 Por lo tanto cuanto mayor sea la relacion entre K y L (K/L), mas eficiente y menos costoso en tiempo de calculo resultara este segundo algoritmo.
 	 	 
 Generalizando para un tamaño teorico de lotes de N , el proceso de comparacion por grilla va a ser de complejidad O(N^2 * L^2 / K^2)  comparado contra O(N^2)
+
+
+Comparando Symbad (NA = 178) con Hipparcos (NB = 2655) 
+
+Todos contra Todos:
+===================
+Time difference of 5.795763 mins
+472590  distancias
+Time difference of 5.858445 mins  total
+
+50x50 celdas / 3x3 celdas
+=========================
+Time difference of 4.019846 secs
+2394  distancias
+Time difference of 4.202339 secs
+
+197 veces mas rapido en cantidad de distancicas calculadas (comparado vs Todos contra Todos)
+83.6 veces mas rapido en timpo de computo (comparado vs Todos contra Todos)
+
+
+30x30 celdas / 3x3 celdas
+=========================
+Time difference of 5.907489 secs
+6281  distancias
+Time difference of 5.998217 secs
+
+75 veces mas rapido en cantidad de distancicas calculadas (comparado vs Todos contra Todos)
+58.7 veces mas rapido en timpo de computo (comparado vs Todos contra Todos)
+
+
+50x50 celdas / 5x5 celdas
+=========================
+Time difference of 7.251834 secs
+6292  distancias
+Time difference of 7.328629 secs
+
+75 veces mas rapido en cantidad de distancicas calculadas (comparado vs Todos contra Todos)
+47.9 veces mas rapido en timpo de computo (comparado vs Todos contra Todos)
