@@ -153,10 +153,14 @@ Por último se procederá a guardar los resultados finales como checkpoint del t
 
 ```{r}
 
-write_csv(hip_clust, "hip_clust.csv")
+write_csv(hip_kmeans_clust1, "hip_kmeans_clust1.csv")
 ```
 
+-Análisis PAM (Partition Around Medoids)
+
 ```{r}
+
+
 
 ```
 

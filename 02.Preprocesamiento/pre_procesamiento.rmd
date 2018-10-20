@@ -23,6 +23,7 @@ library(tidyr)
 library(tidyverse)
 library(ggplot2)
 library(readxl)
+library(readr)
 source("mapeo_hyades.r")
 
 hip <- mapeo_hyades()
@@ -102,20 +103,61 @@ write_csv(hip_version1, path = 'hip_version1.csv')
 ##Analisis de Tycho
 
 ```{r}
-tyc <- read_excel("hyades_source.xlsx", sheet = "Tycho")
+tyc <- read_excel("../00.Datos_y_TP/hyades_source.xlsx", sheet = "Tycho")
 
+```
+
+Remuevo Estrellas del catalogo Hipparcos para no repetir el análisis.
+
+```{r}
+
+tyc_version1 <- tyc %>% .[is.na(.$HIP),]
+
+```
+
+Reviso Faltantes
+
+```{r}
+
+sapply(tyc_version1, function(x) sum(is.na(x)))
+
+```
+
+Los únicos faltantes son los IDs cruzados de los otros catalogos.Se procede a remover las columnas de IDs de otros catalogos, incluídos los TYCID1, TYCID2 y TYCID3.
+
+```{r}
+
+tyc_version1 <- tyc_version1 %>% select(., c(1,5:12))
+
+```
+
+Se normaliza las variables.
+
+```{r}
+
+tyc_version1 <- tyc_version1 %>%
+  mutate(RA_J2000_24 = scale(.$RA_J2000_24)) %>%
+  mutate(DE_J2000 = scale(.$DE_J2000)) %>%
+  mutate(pmRA = scale(.$pmRA)) %>%
+  mutate(pmDE = scale(.$pmDE)) %>%
+  mutate(BT = scale(.$BT)) %>%
+  mutate(VT = scale(.$VT)) %>%
+  mutate(V = scale(.$V)) %>%
+  mutate('B-V' = scale(.$`B-V`))
 
 ```
 
 ```{r}
+summary(tyc_version1)
+
 
 ```
 
-```{r}
-
-```
+Se guarda la primera versión de los datos pre-procesados.
 
 ```{r}
+
+write_csv(tyc_version1, path = 'tyc_version1.csv')
 
 ```
 
