@@ -28,6 +28,7 @@ source("mapeo_hyades.r")
 hip <- mapeo_hyades()
 ```
 
+##Preprocesamiento del catálogo Hipparcos
 
 Analizo Valores faltantes
 
@@ -37,6 +38,7 @@ sapply(hip, function(x) sum(is.na(x)))
 
 ```
 
+Existen 15 valores faltantes para la variable 'B-V'. A continuación se procederá a filtrar el dataframe por esas instancias que presentan valores faltantes.
 
 #Filtro las filas por los valores faltantes
 
@@ -88,13 +90,20 @@ hip_version1 <- hip_sin_faltantes %>%
 summary(hip_version1)
 ```
 
+>>Se guardan los datos pre procesados dentro de un nuevo CSV llamado 'hip_version1.csv'
+
+
 ```{r}
 
 write_csv(hip_version1, path = 'hip_version1.csv')
 
 ```
 
+##Analisis de Tycho
+
 ```{r}
+tyc <- read_excel("hyades_source.xlsx", sheet = "Tycho")
+
 
 ```
 

@@ -43,7 +43,7 @@ Grafico PCA para ver posicionamiento de la Hyades
 
 ```{r}
 library(ggsci)
-fviz_pca_biplot(prcomp(hip1[,-c(1,9)]), title = "PCA - Hipparcos", 
+fviz_pca(prcomp(hip1[,-c(1,9)]), title = "PCA - Hipparcos", 
              habillage = hip1$Symbad_Hyades,  palette = "uchicago",
              geom = "point", ggtheme = theme_classic(),
              legend = "bottom")
@@ -52,6 +52,9 @@ fviz_pca_biplot(prcomp(hip1[,-c(1,9)]), title = "PCA - Hipparcos",
 ```
 
 A través del gráfico de PCA se puede observar que las Hyades se encuentran concentradas.
+
+A continuación se procederá a hacer un análisis de tendencia a la clusterización del conjunto de datos. Para esto se utilizará la función "get_clust_tendency" que tiene implementado el cálculo del estadístico de Hopkins.
+
 
 ```{r}
 set.seed(123)
@@ -69,78 +72,36 @@ El estadístico de Hopkins parecería indicar que este conjunto no es clusteriza
 
 Sin embargo para este caso no queremos clusterizar perfectamente todo el dataset. Solamente nos interesa clusterizar las hyades.
 
-A continuación realizará el análisis de Cluster tomando en cuenta distintas medidas de distancia posibles.
+A continuación realizará el análisis de Cluster tomando dos métodos distintos:
+-Kmeans (o K-medias)
+-PAM (Partition around Medoids)
 
 ##Analisis utilizando K-medias
 
--Distancia Euclídea
+Para el análisis de K-medias se llamará a la librería NbClust que cuenta con un método de validación por votación a partir del cálculo de 30 índices y métricas distintas de ajuste de los clústers, para determinar cual debería ser la cantidad adecuada de k a utilizar.
+
+Como la función NbClust de su librería original poseía ciertas restricciones respecto a la cantidad de parámetros que se pueden pasar al algoritmo Kmeans, se generó una función auxiliar "NbClust2" a partir del código fuente original de la librería. Con esta pequeña modificación se puedo extender la cantidad iteraciones máximas posibles del K-medias hasta hallar la convergencia.
+
 
 ```{r}
 source("NbClust2_kmeans.r")
-kmeans_euclid <- NbClust2(data = hip1[,-c(1,9)], distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid <- NbClust2(data = hip1[,-c(1,9)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
 kmeans_euclid
 ```
 
--Distancia Máxima
+De todos los índice y métricas que el NbClust corrió, 7 de ellos propusieron 2 clústers como la partición que mejor ajusta a los datos.
 
-```{r}
-kmeans_max <- NbClust2(data = hip1[,-c(1,9)], distance = "maximum", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
-kmeans_max
-```
+A continuación se guarda el modelo de K-medias para k=2 y se procede a graficar la proyección de los clúster en los ejes de las componentes principales.
 
--Distancia de Manhattan
-
-```{r}
-kmeans_manhattan <- NbClust2(data = hip1[,-c(1,9)], distance = "manhattan", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
-kmeans_manhattan
-
-```
-
--Distancia de Canberra
-
-```{r}
-kmeans_canberra <- NbClust2(data = hip1[,-c(1,9)], distance = "canberra", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
-kmeans_canberra
-
-```
-
--Distancia Binaria
-
-```{r}
-
-kmeans_bin <- NbClust2(data = hip1[,-c(1,9)], distance = "binary", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
-kmeans_bin
-
-
-```
-
--Distancia de Minkowski
-
-```{r}
-kmeans_minkowski <- NbClust2(data = hip1[,-c(1,9)], distance = "minkowski", min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
-kmeans_minkowski
-
-```
-
-
-```{r}
-hip_clust <- cbind(hip1, kmeans_bin[["Best.partition"]])
-fviz_pca_ind(prcomp(hip_clust[,-c(1,9,10)]), 
-                title = "PCA - Hipparcos Kmeans",
-                habillage = hip_clust$`kmeans_bin[["Best.partition"]]`,
-                palette = "uchicago",
-                geom = "point", 
-                ggtheme = theme_classic(),
-                legend = "bottom", axes = c(1,2))
-```
 
 ```{r}
 set.seed(1)
 hip_kmeans_final <- hip1 %>% select(., -c(1,9)) %>% kmeans(., 2)
 
-table(hip_kmeans_final$cluster)
 
-hip_clust1 <- cbind(hip1, hip_kmeans_final$cluster)
+hip_kmeans_clust1 <- cbind(hip1, kmeans_clust = hip_kmeans_final$cluster)
+table(Symbad = hip_kmeans_clust1$Symbad_Hyades, Cluster = hip_kmeans_clust1$kmeans_clust)
+
 fviz_pca_ind(prcomp(hip_clust1[,-c(1,9,10)]), 
                 title = "PCA - Hipparcos Kmeans",
                 habillage = hip_kmeans_final$cluster,
@@ -150,30 +111,47 @@ fviz_pca_ind(prcomp(hip_clust1[,-c(1,9,10)]),
                 legend = "bottom", axes = c(1,2))
 ```
 
+De los resultados del Kmeans se extrae que de la clusterización, 49 Hyades han sido clasifciadas dentro de un mismo clúster: el número 2. Dentro del cluster número 2 han sido agrupadas otras 315 estrellas que podrían resultar en potenciales candidatas a formar parter del clúster de estrellas Hyades.
+
+Sin embargo, convendría detenerse en ese clúster puntual y analizar los resultados de Silhoutte hacia dentro de ese clúster.
+
+
 ```{r}
-sil_kmeans_final <- silhouette(hip_kmeans_final$cluster, dist(hip1[,-c(1,9)], method = "canberra"))
+sil_kmeans_final <- silhouette(hip_kmeans_final$cluster, dist(hip1[,-c(1,9)], method = "euclidian"))
 
 plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
 
+
 ```
 
+De observar el gráfico de Silhouette, surge que del clúster número 2, no todas las estrellas parecerían ser similares hacia dentro del clúster. De hecho, parecería ser que un poco mas de la mitad de ellas debería pertencer al clúster 1 en vez del clúster 2.
 
+A continuación se adjuntan los datos de Silhouette al dataframe final y se procede a filtrar por todas las estrellas pertenecientes al clúster 2 que además posean un score de Silhouette positivo.
 
 ```{r}
-hip_clust %>% filter(., Symbad_Hyades == T)
+
+hip_kmeans_clust1 <- hip_kmeans_clust1 %>% cbind(.,
+                                                 sil_clust = sil_kmeans_final[,1],
+                                                 sil_neigh = sil_kmeans_final[,2],
+                                                 sil_width = sil_kmeans_final[,3]
+                                                 )
+
 ```
 
+```{r}
+
+
+hip_kmeans_clust1 %>% filter(., sil_clust == 2) %>% select(., -c(1:8,10:12)) 
+
+```
+
+Del listado del clúster 2 se desprende que las que tienen Silhouette mas bajo son aquellas que han sido identificadas como verdaderas Hyades.
+
+Con lo cual es probable que el clúster hasta acá aqui analizado posea algún grupo de estrellas no compatible con las características de la Hyades o mucho mas cercanas entre sí que las Hyades mismas.
+
+Por último se procederá a guardar los resultados finales como checkpoint del trabajo hasta aqui realizado en una salida de CSV.
 
 ```{r}
-hip_clust <- hip1 %>% cbind(., 
-                            kmeans_euclid = kmeans_euclid[["Best.partition"]], 
-                            kmeans_max = kmeans_max[["Best.partition"]], 
-                            kmeans_manhattan = kmeans_manhattan[["Best.partition"]], 
-                            kmeans_canberra = kmeans_canberra[["Best.partition"]], 
-                            kmeans_bin = kmeans_bin[["Best.partition"]], 
-                            kmeans_minkowski = kmeans_minkowski[["Best.partition"]])
-
-hip_clust %>% filter(., Symbad_Hyades == T) %>% select(., c(1,9:15))
 
 write_csv(hip_clust, "hip_clust.csv")
 ```
