@@ -168,9 +168,7 @@ source('PAM_loop.r')
 diss_euclid_hip <-hip1[,2:8] %>% dist(., method = "euclidian")
 
 
-PAM_HIP_Euclid <- PAM_loop(x = diss_euclid_hip,
-                          data = hip1[,2:8],
-                          k = 20)
+PAM_HIP_Euclid <- PAM_loop(diss_euclid_hip, hip1[,2:8], 20)
 
 ```
 
