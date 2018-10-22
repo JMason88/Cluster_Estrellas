@@ -1,0 +1,304 @@
+---
+title: "dbscan"
+author: "Fernando Menendez"
+date: "October 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=9, fig.height = 5) 
+
+rm(list = ls())
+gc()
+
+library(dplyr)
+library(dbscan)
+library(fpc)
+library(factoextra)
+library(mlr)
+library(gridExtra)
+library(ggpubr)
+```
+
+```{r}
+hip<-read.csv("..\\02.Preprocesamiento\\hip_version1.csv")
+summarizeColumns(hip)
+nrow(hip)
+```
+
+
+Prueba 1 - medidas de posicion
+
+
+```{r}
+df<-hip %>% select(RA_J2000,DE_J2000)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df,i)
+  abline(h = .2, lty=2)
+}
+
+```
+
+```{r}
+set.seed(123)
+db <- fpc::dbscan(df, eps = .5, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df, main = "DBSCAN", frame = FALSE)
+```
+
+Defino la funcion para ejecutar DBSCAN
+
+```{r}
+run_dbscan <- function(data, eps, minPts) {
+  tbl<-NULL
+  k<-1
+  for (i in eps) {
+    for (j in minPts) {
+      set.seed(123)
+      db <- fpc::dbscan(data, eps = i, MinPts = j)
+      tbl<-rbind(tbl,data.frame(cls=as.factor(db$cluster),hyad=hip$Symbad_Hyades) %>%
+                   mutate(hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
+                   group_by(cls,hyad) %>% count() %>%
+                   spread(hyad,n,fill = 0) %>% 
+                   mutate(eps=i,minPts=j,test=as.factor(k)))
+      k<-k+1
+    }
+  }
+  sorted.test<-order(levels(as.factor(tbl$test)))
+  tbl$test=factor(tbl$test,levels = sorted.test )
+  return(tbl)
+}
+```
+
+
+
+```{r}
+tbl.pos<-run_dbscan(df, seq(.2,1,.1), seq(5,50,1))
+```
+
+```{r}
+tbl.pos.rt<-tbl.pos %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% filter(cls!=0) %>% group_by(test) %>% mutate(total_cls=n()) %>% filter(Hyades==max(Hyades),ratio>.2) %>% ungroup() %>% arrange(test)
+tbl.pos.rt
+```
+
+
+```{r, fig.width= 9}
+ggplot(data = tbl.pos.rt, aes(x=test)) +
+  geom_bar(aes(y=Hyades),stat="identity") +
+  geom_point(aes(y=ratio/4*100,size=total_cls),color="green", stat = "identity") +
+  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
+                     sec.axis = sec_axis(~.*4/100,breaks = seq(0,1,.20), name = "% Hyades en Cluster")) +
+#  ylab("Total de Hyades en Cluster") +
+  xlab("Nro de Test") +
+  labs(size="Nro Clusters") +
+#  scale_x_continuous(breaks=seq(1,150,1)) +
+  theme_tufte()
+```
+
+
+
+
+
+
+
+Escalo varaibles
+```{r}
+hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades))
+
+```
+
+Prueba 2 - B.V y Vmag
+
+```{r}
+df2<-hip.scaled %>% select(Vmag,B.V)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df2,i)
+  abline(h = .2, lty=2)
+}
+
+```
+
+```{r,fig.height=5}
+set.seed(123)
+db <- fpc::dbscan(df2, eps = .2, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df2, main = "DBSCAN", frame = FALSE)
+```
+
+
+```{r,warning=FALSE,error=FALSE}
+tbl.vb<-run_dbscan(df2,seq(.1,1,.1),seq(5,50,1))
+```
+
+
+```{r}
+tbl.vb.rt<-tbl.vb %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% filter(cls!=0) %>% group_by(test) %>% mutate(total_cls=n()) %>% filter(Hyades==max(Hyades), ratio>.1) %>% ungroup() %>% arrange(desc(ratio))
+tbl.vb.rt
+```
+
+
+```{r}
+ggplot(data = tbl.vb.rt, aes(x=test)) +
+  geom_bar(aes(y=Hyades),stat="identity") +
+  geom_point(aes(y=ratio/4*100,size=total_cls),color="green", stat = "identity") +
+  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
+                     sec.axis = sec_axis(~.*4/100,breaks = seq(0,1,.20), name = "% Hyades en Cluster")) +
+#  ylab("Total de Hyades en Cluster") +
+  xlab("Nro de Test") +
+  labs(size="Nro Clusters") +
+#  scale_x_continuous(breaks=seq(1,150,1)) +
+  theme_tufte()
+```
+
+
+
+Prueba 3 - Full dataset
+
+```{r}
+df3<-hip.scaled %>% select(-HIP,-Symbad_Hyades)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df3,i)
+  abline(h = 2, lty=2)
+}
+
+```
+
+```{r, warning=FALSE}
+set.seed(123)
+db <- fpc::dbscan(df3, eps = 1.5, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df3, main = "DBSCAN", frame = FALSE)
+```
+
+```{r,warning=FALSE,error=FALSE}
+tbl.full<-run_dbscan(df3,seq(.5,2,.1),seq(5,50,1))
+```
+
+
+```{r}
+tbl.full.rt<-tbl.full %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% filter(cls!=0) %>% group_by(test) %>% mutate(total_cls=n()) %>% filter(Hyades==max(Hyades), ratio>.5) %>% ungroup() %>% arrange(desc(ratio))
+tbl.full.rt
+```
+
+
+```{r}
+ggplot(data = tbl.full.rt, aes(x=test)) +
+  geom_bar(aes(y=Hyades),stat="identity") +
+  geom_point(aes(y=ratio/4*100,size=total_cls),color="green", stat = "identity") +
+  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
+                     sec.axis = sec_axis(~.*4/100,breaks = seq(0,1,.20), name = "% Hyades en Cluster")) +
+#  ylab("Total de Hyades en Cluster") +
+  xlab("Nro de Test") +
+  labs(size="Nro Clusters") +
+#  scale_x_continuous(breaks=seq(1,150,1)) +
+  theme_tufte()
+```
+
+
+```{r}
+tbl.full %>% filter(test==273)
+```
+
+Repito el experimento para encontrar candidatas
+
+```{r,warning=FALSE}
+set.seed(123)
+db <- fpc::dbscan(df3, eps = 1, MinPts = 47)
+db
+cand<- data.frame(HIP=hip$HIP,Symbad_Hyades=hip$Symbad_Hyades,Cluster=db$cluster) %>% filter(Cluster==3)
+cand
+```
+
+Prueba 4 - Sin distancias
+
+```{r}
+df4<-hip.scaled %>% select(-HIP,-Symbad_Hyades,-RA_J2000,-DE_J2000)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df4,i)
+  abline(h = 2, lty=2)
+}
+
+```
+
+```{r, warning=FALSE}
+set.seed(123)
+db <- fpc::dbscan(df4, eps = 1.5, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df4, main = "DBSCAN", frame = FALSE)
+```
+
+```{r,warning=FALSE,error=FALSE}
+tbl.ndis<-run_dbscan(df4,seq(.5,2,.1),seq(5,50,1))
+```
+
+
+```{r}
+tbl.ndis.rt<-tbl.ndis %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% filter(cls!=0) %>% group_by(test) %>% mutate(total_cls=n()) %>% filter(Hyades==max(Hyades), ratio>.5) %>% ungroup() %>% arrange(desc(ratio))
+tbl.ndis.rt
+```
+
+
+```{r}
+ggplot(data = tbl.ndis.rt, aes(x=test)) +
+  geom_bar(aes(y=Hyades),stat="identity") +
+  geom_point(aes(y=ratio/4*100,size=total_cls),color="green", stat = "identity") +
+  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
+                     sec.axis = sec_axis(~.*4/100,breaks = seq(0,1,.20), name = "% Hyades en Cluster")) +
+#  ylab("Total de Hyades en Cluster") +
+  xlab("Nro de Test") +
+  labs(size="Nro Clusters") +
+#  scale_x_continuous(breaks=seq(1,150,1)) +
+  theme_tufte()
+```
+
+
+Nuevamente, repito el experimento para encontrar candidatas
+
+```{r}
+tbl.ndis.rt %>% filter(test %in% c(19,132))
+tbl.ndis %>% filter(test %in% c(19,132))
+```
+```{r,warning=FALSE}
+set.seed(123)
+db <- fpc::dbscan(df4, eps = .5, MinPts = 23)
+db
+cand2<- data.frame(HIP=hip$HIP,Symbad_Hyades=hip$Symbad_Hyades,Cluster=db$cluster) %>% filter(Cluster==2) %>% arrange(HIP)
+cand2
+
+set.seed(123)
+db <- fpc::dbscan(df4, eps = .7, MinPts = 44)
+db
+cand3<- data.frame(HIP=hip$HIP,Symbad_Hyades=hip$Symbad_Hyades,Cluster=db$cluster) %>% filter(Cluster==2) %>% arrange(HIP)
+cand3
+```
+
+Prueba con OPTICS
+
+```{r}
+op<-optics(df3,eps = 2,minPts = 12)
+plot(op)
+```
+
+
+Mergeo la seleccion de candidatas
+
+```{r}
+cand.fil<-cand %>% filter(Symbad_Hyades==FALSE)
+cand2.fil<-cand2 %>% filter(Symbad_Hyades==FALSE)
+cand3.fil<-cand3 %>% filter(Symbad_Hyades==FALSE)
+cand.list <- cand.fil %>% inner_join(cand2.fil, by = "HIP") %>% inner_join(cand3.fil, by = "HIP") %>% select(HIP)
+cand.list
+```
+
+
+Guardo las candidatas
+
+```{r}
+write.csv(cand.list, "DBSCAN - Candidatas.csv")
+```
+

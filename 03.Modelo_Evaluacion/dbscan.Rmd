@@ -1,0 +1,333 @@
+---
+title: "dbscan"
+author: "Fernando Menendez"
+date: "October 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=9, fig.height = 5) 
+
+rm(list = ls())
+gc()
+
+library(dplyr)
+library(dbscan)
+library(fpc)
+library(factoextra)
+library(mlr)
+library(gridExtra)
+library(ggpubr)
+```
+
+```{r}
+hip<-read.csv("..\\02.Preprocesamiento\\hip_version1.csv")
+summarizeColumns(hip)
+nrow(hip)
+```
+
+
+Prueba 1 - medidas de posicion
+
+
+```{r}
+df<-hip %>% select(RA_J2000,DE_J2000)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df,i)
+  abline(h = .2, lty=2)
+}
+
+```
+
+```{r}
+set.seed(123)
+db <- fpc::dbscan(df, eps = .5, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df, main = "DBSCAN", frame = FALSE)
+```
+
+Defino la funcion para ejecutar DBSCAN
+
+```{r}
+run_dbscan <- function(data, eps, minPts) {
+  tbl<-NULL
+  k<-1
+  for (i in eps) {
+    for (j in minPts) {
+      set.seed(123)
+      db <- fpc::dbscan(data, eps = i, MinPts = j)
+      tbl<-rbind(tbl,data.frame(cls=as.factor(db$cluster),hyad=hip$Symbad_Hyades) %>%
+                   mutate(hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
+                   group_by(cls,hyad) %>% count() %>%
+                   spread(hyad,n,fill = 0) %>% 
+                   mutate(eps=i,minPts=j,test=as.factor(k)))
+      k<-k+1
+    }
+  }
+  sorted.test<-order(levels(as.factor(tbl$test)))
+  tbl$test=factor(tbl$test,levels = sorted.test )
+  return(tbl)
+}
+```
+
+```{r,warning=FALSE, error=FALSE}
+# tbl.pos<-NULL
+# k<-1
+# for (i in seq(.2,1,.1)) {
+#   for (j in seq(5,50,1)) {
+#     set.seed(123)
+#     db.pos <- fpc::dbscan(df, eps = i, MinPts = j)
+#     tbl.pos<-rbind(tbl.pos,data.frame(cls=as.factor(db.pos$cluster),hyad=hip$Symbad_Hyades) %>%
+#                      mutate(hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
+#                      group_by(cls,hyad) %>% count() %>%
+#                      spread(hyad,n,fill = 0) %>% 
+#                      mutate(eps=i,minPts=j,test=as.factor(k)))
+#     k<-k+1
+#   }
+# }
+```
+
+```{r}
+tbl.pos<-run_dbscan(df, seq(.2,1,.1), seq(5,50,1))
+```
+
+```{r}
+tbl.pos.rt<-tbl.pos %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% filter(cls!=0) %>% group_by(test) %>% mutate(total_cls=n()) %>% filter(Hyades==max(Hyades),ratio>.1) %>% ungroup() %>% arrange(test)
+```
+
+
+```{r}
+ggplot(data = tbl.pos.rt, aes(x=test)) +
+  geom_bar(aes(y=Hyades),stat="identity") +
+  geom_point(data = tbl.pos.rt, aes(y=ratio/4*100,size=total_cls),color="green", stat = "identity") +
+  scale_y_continuous(sec.axis = sec_axis(~.*4/100)) +
+#  scale_x_continuous(breaks=seq(1,150,1)) +
+  theme_tufte()
+```
+
+```{r}
+tbl.pos.sum<-tbl.pos %>% select(eps,minPts,cls,n) %>% filter(cls!=0) %>% group_by(eps,minPts) %>% 
+    summarise(total_clusters=n(),hyades_in_cls=max(n)) %>% arrange(desc(hyades_in_cls))
+tbl.pos.sum
+```
+
+
+```{r,fig.height=9}
+g1<-ggplot(data = tbl.pos.sum[tbl.pos.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = hyades_in_cls),colour = "white") + 
+  geom_text(aes(label = total_clusters)) +
+  scale_fill_gradient(low = "white",high = "steelblue") +
+  labs(x="minPts", y="eps", title="Posicion - Hyades+Clusters x Ejecucion")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,1,.1)) 
+#  scale_color_brewer(palette = "Set1")
+
+g2<-ggplot(data = tbl.pos.sum[tbl.pos.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = total_clusters),colour = "white") + 
+  scale_fill_gradient(low = "white",high = "red") +
+  labs(x="minPts", y="eps", title="Posicion - Total Clusters")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,1,.1)) 
+#  scale_color_brewer(palette = "Set2")
+ggarrange(g1,g2,widths = c(10,10),heights = 7,nrow =2)
+```
+
+
+Escalo varaibles
+```{r}
+hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades))
+
+```
+
+Prueba 2 - B.V y Vmag
+
+```{r}
+df2<-hip.scaled %>% select(Vmag,B.V)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df2,i)
+  abline(h = .2, lty=2)
+}
+
+```
+
+```{r,fig.height=5}
+set.seed(123)
+db <- fpc::dbscan(df2, eps = .2, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df2, main = "DBSCAN", frame = FALSE)
+```
+
+```{r,warning=FALSE, error=FALSE}
+# tbl.vb<-NULL
+# k<-1
+# for (i in seq(.2,1,.1)) {
+#   for (j in seq(5,50,1)) {
+#     set.seed(123)
+#     db.vb <- fpc::dbscan(df2, eps = i, MinPts = j)
+#     tbl.vb<-rbind(tbl.vb,data.frame(cls=as.factor(db.vb$cluster),hyad=hip$Symbad_Hyades) %>% filter(hyad==T) %>% group_by(cls) %>% count(hyad) %>% mutate(eps=i,minPts=j,test=as.factor(k)))
+#     k<-k+1
+#   }
+# }
+```
+
+```{r,warning=FALSE,error=FALSE}
+tbl.vb<-run_dbscan(df2,seq(.2,1,.1),seq(5,50,1))
+```
+
+
+
+```{r}
+tbl.vb.sum<-tbl.vb %>% select(eps,minPts,cls,n) %>% filter(cls!=0) %>% group_by(eps,minPts) %>% 
+    summarise(total_clusters=n(),hyades_in_cls=max(n)) %>% arrange(desc(hyades_in_cls))
+tbl.vb.sum
+```
+
+
+```{r,fig.height=9}
+g1<-ggplot(data = tbl.vb.sum[tbl.vb.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = hyades_in_cls),colour = "white") + 
+  geom_text(aes(label = total_clusters)) +
+  scale_fill_gradient(low = "white",high = "steelblue") +
+  labs(x="minPts", y="eps", title="Vmag-B.V - Hyades+Clusters x Ejecucion")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,1,.1)) 
+#  scale_color_brewer(palette = "Set1")
+
+g2<-ggplot(data = tbl.vb.sum[tbl.vb.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = total_clusters),colour = "white") + 
+  scale_fill_gradient(low = "white",high = "red") +
+  labs(x="minPts", y="eps", title="Vmag-B.V - Total Clusters")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,1,.1)) 
+#  scale_color_brewer(palette = "Set2")
+ggarrange(g1,g2,widths = c(10,10),heights = 7,nrow =2)
+```
+
+Prueba 3 - Full dataset
+
+```{r}
+df3<-hip.scaled %>% select(-HIP,-Symbad_Hyades)
+for (i in seq(5,50,5)) {
+  kNNdistplot(df3,i)
+  abline(h = 2, lty=2)
+}
+
+```
+
+```{r, warning=FALSE}
+set.seed(123)
+db <- fpc::dbscan(df3, eps = 1, MinPts = 40)
+db
+# Plot DBSCAN results
+plot(db, df3, main = "DBSCAN", frame = FALSE)
+```
+
+```{r,warning=FALSE, error=FALSE}
+tbl.full<-NULL
+k<-1
+for (i in seq(.5,1.5,.1)) {
+  for (j in seq(5,50,1)) {
+    set.seed(123)
+    db.full <- fpc::dbscan(df3, eps = i, MinPts = j)
+    tbl.full<-rbind(tbl.full,data.frame(cls=as.factor(db.full$cluster),hyad=hip$Symbad_Hyades) %>% filter(hyad==T) %>% group_by(cls) %>% count(hyad) %>% mutate(eps=i,minPts=j,test=as.factor(k)))
+    k<-k+1
+  }
+}
+```
+
+```{r}
+tbl.full.sum<-tbl.full %>% select(eps,minPts,cls,n) %>% filter(cls!=0) %>% group_by(eps,minPts) %>% 
+    summarise(total_clusters=n(),hyades_in_cls=max(n)) %>% arrange(desc(hyades_in_cls))
+tbl.full.sum
+```
+
+
+```{r,fig.height=9}
+g1<-ggplot(data = tbl.full.sum[tbl.full.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = hyades_in_cls),colour = "white") + 
+  geom_text(aes(label = total_clusters)) +
+  scale_fill_gradient(low = "white",high = "steelblue") +
+  labs(x="minPts", y="eps", title="Full - Hyades+Clusters x Ejecucion")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,2,.1)) 
+#  scale_color_brewer(palette = "Set1")
+
+g2<-ggplot(data = tbl.full.sum[tbl.full.sum$total_clusters>1,], aes(x= minPts, y = eps )) +
+  geom_tile(aes(fill = total_clusters),colour = "white") + 
+  scale_fill_gradient(low = "white",high = "red") +
+  labs(x="minPts", y="eps", title="Full - Total Clusters")+
+  theme_tufte()+
+  theme(panel.spacing.x=unit(0.5, "cm")) +
+  theme(panel.spacing.y =unit(0.5, "cm")) +
+#  coord_equal() +
+#  coord_fixed(ratio = 0.7)+
+  scale_x_continuous(breaks = seq(5,50,5)) +
+  scale_y_continuous(breaks = seq(.1,2,.1)) 
+#  scale_color_brewer(palette = "Set2")
+ggarrange(g1,g2,widths = c(10,10),heights = 7,nrow =2)
+```
+
+
+Prueba con OPTICS
+
+```{r}
+op<-optics(df3,eps = 2,minPts = 12)
+plot(op)
+```
+
+
+Mergeo de Clusters y seleccion de candidatas
+
+Revision de Posicion
+
+```{r}
+set.seed(123)
+db.pos <- fpc::dbscan(df, eps = .3, MinPts = 10)
+df.aug<- hip %>% mutate(cls = db.pos$cluster)
+```
+```{r}
+i=.3
+j=10
+k=1
+data.frame(cls=as.factor(db.pos$cluster),hyad=hip$Symbad_Hyades) %>% 
+  mutate(hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
+  group_by(cls,hyad) %>% count() %>%
+  spread(hyad,n,fill = 0) %>% mutate(total=Hyades + No_Hyades,eps=i,minPts=j,test=as.factor(k))
+```
+
+```{r}
+plot(silhouette(db.pos$cluster,dist(df)))
+```
+
+```{r}
+table(df.aug$cls,df.aug$Symbad_Hyades)
+```
+
