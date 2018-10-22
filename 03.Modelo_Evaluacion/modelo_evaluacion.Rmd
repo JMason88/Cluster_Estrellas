@@ -121,7 +121,6 @@ sil_kmeans_final <- silhouette(hip_kmeans_final$cluster, dist(hip1[,-c(1,9)], me
 
 plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
 
-
 ```
 
 De observar el gráfico de Silhouette, surge que del clúster número 2, no todas las estrellas parecerían ser similares hacia dentro del clúster. De hecho, parecería ser que un poco mas de la mitad de ellas debería pertencer al clúster 1 en vez del clúster 2.
@@ -161,16 +160,197 @@ write_csv(hip_kmeans_clust1, "hip_kmeans_clust1.csv")
 ```{r}
 source('PAM_loop.r')
 
+```
+
+-Distancia Euclídea
+
+```{r}
+
+PAM_HIP_Euclid <- PAM_loop(x = hip1[,2:8] %>%
+                            dist(., method = "euclidian"),
+                          data = hip1[,2:8],
+                          k = 20)
+
+```
+
+```{r}
+SSE <- PAM_HIP_Euclid[[1]]
+Sil <- PAM_HIP_Euclid[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+-Distancia de Canberra
+
+```{r}
+PAM_HIP_Canberra <- PAM_loop(x = hip1[,2:8] %>%
+                            dist(., method = "canberra"),
+                          data = hip1[,2:8],
+                          k = 20)
+
+```
+
+
+```{r}
+SSE <- PAM_HIP_Canberra[[1]]
+Sil <- PAM_HIP_Canberra[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+-Distancia de Mahalanobis
+
+```{r}
+hip1_means <- colMeans(hip1[,2:8])
+hip1_Sx <- cov(hip1[,2:8])
+
+
+PAM_HIP_Mahalanobis <- PAM_loop(x = hip1[,2:8] %>%
+                            mahalanobis(., hip1_means, hip1_Sx),
+                          data = hip1[,2:8],
+                          k = 20)
+
+
+```
+
+```{r}
+SSE <- PAM_HIP_Mahalanobis[[1]]
+Sil <- PAM_HIP_Mahalanobis[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+##Analisis Tycho
+
+```{r}
 tyc1 <- read.csv('../02.Preprocesamiento/tyc_version1.csv')
 
 ```
 
 ```{r}
+kmeans_euclid_tyc <- NbClust2(data = tyc1[,-c(1)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid_tyc
 
-PAM_Euclidian <- PAM_loop(x = tyc1[,2:9] %>%
+```
+
+```{r}
+set.seed(1)
+tyc_kmeans_final <- tyc1 %>% select(., -c(1)) %>% kmeans(., 2)
+
+
+tyc_kmeans_clust1 <- cbind(tyc1, kmeans_clust = tyc_kmeans_final$cluster)
+#table(Symbad = tyc_kmeans_clust1$Symbad_Hyades, Cluster = tyc_kmeans_clust1$kmeans_clust)
+
+fviz_pca_ind(prcomp(hip_clust1[,-c(1,9)]), 
+                title = "PCA - Tycho Kmeans",
+                habillage = hip_kmeans_final$cluster,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+```
+
+```{r}
+sil_kmeans_final <- silhouette(tyc_kmeans_final$cluster, dist(tyc1[,-c(1)], method = "euclidian"))
+
+plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
+
+```
+
+#Análisis PAM para Tycho
+
+-Distancia Euclídea
+
+```{r}
+
+PAM_TYC_Euclid <- PAM_loop(x = tyc1[,2:9] %>%
                             dist(., method = "euclidian"),
+                          data = hip1[,2:9],
+                          k = 20)
+
+```
+
+```{r}
+SSE <- PAM_TYC_Euclid[[1]]
+Sil <- PAM_TYC_Euclid[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+-Distancia de Canberra
+
+```{r}
+PAM_TYC_Canberra <- PAM_loop(x = tyc1[,2:9] %>%
+                            dist(., method = "canberra"),
                           data = tyc1[,2:9],
                           k = 20)
+
+```
+
+
+```{r}
+SSE <- PAM_TYC_Canberra[[1]]
+Sil <- PAM_TYC_Canberra[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+-Distancia de Mahalanobis
+
+```{r}
+tyc1_means <- colMeans(tyc1[,2:9])
+tyc1_Sx <- cov(tyc1[,2:9])
+
+
+PAM_TYC_Mahalanobis <- PAM_loop(x = tyc1[,2:9] %>%
+                            mahalanobis(., tyc1_means, tyc1_Sx),
+                          data = hip1[,2:9],
+                          k = 20)
+
+
+```
+
+```{r}
+SSE <- PAM_TYC_Mahalanobis[[1]]
+Sil <- PAM_TYC_Mahalanobis[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
 
 ```
 

@@ -17,7 +17,7 @@ PAM_loop <- function(x, data, k = 2) {
     sil_pers[i] <- personal_pam$silinfo$avg.width
   }
   
-  return(list(sse_p_pers, sil_pers))  
+  return(list(SSE = sse_p_pers, SIL = sil_pers))  
 }
 
 

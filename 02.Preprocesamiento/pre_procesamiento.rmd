@@ -107,12 +107,15 @@ tyc <- read_excel("../00.Datos_y_TP/hyades_source.xlsx", sheet = "Tycho")
 
 ```
 
-Remuevo Estrellas del catalogo Hipparcos para no repetir el análisis.
+Remuevo Estrellas del catalogo Hipparcos para no repetir el análisis, excepto las estrellas hyades que servirán como grupo de control para el análisis.
 
 ```{r}
 
-tyc_version1 <- tyc %>% .[is.na(.$HIP),]
+tyc_version1 <- tyc %>%
+  left_join(., hip[,c(1,9)]) %>%
+  filter(., !complete.cases(HIP) | Symbad_Hyades == T) 
 
+summary(tyc_version1)
 ```
 
 Reviso Faltantes
@@ -127,7 +130,7 @@ Los únicos faltantes son los IDs cruzados de los otros catalogos.Se procede a r
 
 ```{r}
 
-tyc_version1 <- tyc_version1 %>% select(., c(1,5:12))
+tyc_version1 <- tyc_version1 %>% select(., c(1,5:12,16))
 
 ```
 
