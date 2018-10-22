@@ -159,12 +159,18 @@ write_csv(hip_kmeans_clust1, "hip_kmeans_clust1.csv")
 -Análisis PAM (Partition Around Medoids)
 
 ```{r}
+source('PAM_loop.r')
 
-
+tyc1 <- read.csv('../02.Preprocesamiento/tyc_version1.csv')
 
 ```
 
 ```{r}
+
+PAM_Euclidian <- PAM_loop(x = tyc1[,2:9] %>%
+                            dist(., method = "euclidian"),
+                          data = tyc1[,2:9],
+                          k = 20)
 
 ```
 
