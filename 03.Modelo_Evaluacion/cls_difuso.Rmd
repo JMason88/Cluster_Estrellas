@@ -1,0 +1,46 @@
+---
+title: "difuso"
+author: "Fernando Menendez"
+date: "October 20, 2018"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=9, fig.height = 5) 
+
+rm(list = ls())
+gc()
+
+library(dplyr)
+library(factoextra)
+library(mlr)
+library(gridExtra)
+library(ggpubr)
+library(cluster)
+```
+
+```{r}
+hip<-read.csv("..\\02.Preprocesamiento\\hip_version1.csv")
+summarizeColumns(hip)
+nrow(hip)
+```
+
+Escalo varaibles
+```{r}
+hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades))
+
+```
+
+```{r}
+fc1<-hip.scaled %>% select(-HIP,-Symbad_Hyades)
+fuzz1<-fanny(fc1,k=3,memb.exp = 1.1)
+```
+
+
+```{r}
+fuzz1$coeff
+table(fuzz1$clustering, hip.scaled$Symbad_Hyades)
+```
+
