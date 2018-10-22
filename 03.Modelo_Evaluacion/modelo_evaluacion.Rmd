@@ -102,7 +102,7 @@ hip_kmeans_final <- hip1 %>% select(., -c(1,9)) %>% kmeans(., 2)
 hip_kmeans_clust1 <- cbind(hip1, kmeans_clust = hip_kmeans_final$cluster)
 table(Symbad = hip_kmeans_clust1$Symbad_Hyades, Cluster = hip_kmeans_clust1$kmeans_clust)
 
-fviz_pca_ind(prcomp(hip_clust1[,-c(1,9,10)]), 
+fviz_pca_ind(prcomp(hip_kmeans_clust1[,-c(1,9,10)]), 
                 title = "PCA - Hipparcos Kmeans",
                 habillage = hip_kmeans_final$cluster,
                 palette = "uchicago",
@@ -165,9 +165,10 @@ source('PAM_loop.r')
 -Distancia Euclídea
 
 ```{r}
+diss_euclid_hip <-hip1[,2:8] %>% dist(., method = "euclidian")
 
-PAM_HIP_Euclid <- PAM_loop(x = hip1[,2:8] %>%
-                            dist(., method = "euclidian"),
+
+PAM_HIP_Euclid <- PAM_loop(x = diss_euclid_hip,
                           data = hip1[,2:8],
                           k = 20)
 
@@ -185,8 +186,10 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 -Distancia de Canberra
 
 ```{r}
-PAM_HIP_Canberra <- PAM_loop(x = hip1[,2:8] %>%
-                            dist(., method = "canberra"),
+diss_canberra_hip <-hip1[,2:8] %>% dist(., method = "canberra")
+
+
+PAM_HIP_Canberra <- PAM_loop(x = diss_canberra_hip,
                           data = hip1[,2:8],
                           k = 20)
 
@@ -208,10 +211,10 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 ```{r}
 hip1_means <- colMeans(hip1[,2:8])
 hip1_Sx <- cov(hip1[,2:8])
+diss_mahalanobis_hip <-hip1[,2:8] %>% mahalanobis(., hip1_means, hip1_Sx)
 
 
-PAM_HIP_Mahalanobis <- PAM_loop(x = hip1[,2:8] %>%
-                            mahalanobis(., hip1_means, hip1_Sx),
+PAM_HIP_Mahalanobis <- PAM_loop(x = diss_mahalanobis_hip,
                           data = hip1[,2:8],
                           k = 20)
 
@@ -249,7 +252,7 @@ tyc_kmeans_final <- tyc1 %>% select(., -c(1)) %>% kmeans(., 2)
 tyc_kmeans_clust1 <- cbind(tyc1, kmeans_clust = tyc_kmeans_final$cluster)
 #table(Symbad = tyc_kmeans_clust1$Symbad_Hyades, Cluster = tyc_kmeans_clust1$kmeans_clust)
 
-fviz_pca_ind(prcomp(hip_clust1[,-c(1,9)]), 
+fviz_pca_ind(prcomp(tyc_kmeans_clust1[,-c(1,9)]), 
                 title = "PCA - Tycho Kmeans",
                 habillage = hip_kmeans_final$cluster,
                 palette = "uchicago",
@@ -272,9 +275,10 @@ plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
 
 ```{r}
 
-PAM_TYC_Euclid <- PAM_loop(x = tyc1[,2:9] %>%
-                            dist(., method = "euclidian"),
-                          data = hip1[,2:9],
+diss_euclid_tyc <-tyc1[,2:9] %>% dist(., method = "euclidian")
+
+PAM_TYC_Euclid <- PAM_loop(x = diss_euclid_tyc,
+                          data = tyc1[,2:9],
                           k = 20)
 
 ```
@@ -291,8 +295,9 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 -Distancia de Canberra
 
 ```{r}
-PAM_TYC_Canberra <- PAM_loop(x = tyc1[,2:9] %>%
-                            dist(., method = "canberra"),
+diss_canberra_tyc <-tyc1[,2:9] %>% dist(., method = "canberra")
+
+PAM_TYC_Canberra <- PAM_loop(x = diss_canberra_tyc,
                           data = tyc1[,2:9],
                           k = 20)
 
@@ -315,9 +320,10 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 tyc1_means <- colMeans(tyc1[,2:9])
 tyc1_Sx <- cov(tyc1[,2:9])
 
+diss_mahalanobis_tyc <-tyc1[,2:9] %>% mahalanobis(., tyc1_means, tyc1_Sx)
 
-PAM_TYC_Mahalanobis <- PAM_loop(x = tyc1[,2:9] %>%
-                            mahalanobis(., tyc1_means, tyc1_Sx),
+
+PAM_TYC_Mahalanobis <- PAM_loop(diss_mahalanobis_tyc,
                           data = hip1[,2:9],
                           k = 20)
 
