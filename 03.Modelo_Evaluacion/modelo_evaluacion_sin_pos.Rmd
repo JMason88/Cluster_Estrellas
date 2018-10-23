@@ -1,0 +1,370 @@
+---
+title: "modelado_validacion"
+author: "JMason88"
+date: "14 de octubre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Limpio Memoria
+
+```{r}
+rm(list = ls())
+
+```
+
+#Llamo librerías
+
+```{r}
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(cluster)
+library(factoextra)
+library(NbClust)
+
+```
+
+Levanto primera version de pre-procesamiento.
+
+```{r}
+hip1 <- read_csv("../02.Preprocesamiento/hip_version1.csv")
+hip1$RA_J2000 = NULL
+hip1$DE_J2000 = NULL
+hip1
+
+```
+
+Análisis de tendencia de clusterización ¿existen indicios para pensar que este dataset podría ser clusterizable?
+
+
+Grafico PCA para ver posicionamiento de la Hyades
+
+```{r}
+library(ggsci)
+fviz_pca(prcomp(hip1[,-c(1,7)]), title = "PCA - Hipparcos", 
+             habillage = hip1$Symbad_Hyades,  palette = "uchicago",
+             geom = "point", ggtheme = theme_classic(),
+             legend = "bottom")
+
+
+```
+
+A través del gráfico de PCA se puede observar que las Hyades se encuentran concentradas.
+
+A continuación se procederá a hacer un análisis de tendencia a la clusterización del conjunto de datos. Para esto se utilizará la función "get_clust_tendency" que tiene implementado el cálculo del estadístico de Hopkins.
+
+
+```{r}
+set.seed(123)
+
+gradient.color <- list(low = "steelblue",  high = "white")
+
+hip1 %>% 
+  select(., -HIP, -Symbad_Hyades) %>%
+  get_clust_tendency(n=nrow(.)-1, gradient = gradient.color) #Ojo que tarda mucho con n-1 grados de libertad
+
+
+```
+
+El estadístico de Hopkins parecería indicar que este conjunto no es clusterizable, ya que su valor es cercano a 0. (Un conjunto con fuerte tendencia a la clusterización debería tener un estadístico >0.5)
+
+Sin embargo para este caso no queremos clusterizar perfectamente todo el dataset. Solamente nos interesa clusterizar las hyades.
+
+A continuación realizará el análisis de Cluster tomando dos métodos distintos:
+-Kmeans (o K-medias)
+-PAM (Partition around Medoids)
+
+##Analisis utilizando K-medias
+
+Para el análisis de K-medias se llamará a la librería NbClust que cuenta con un método de validación por votación a partir del cálculo de 30 índices y métricas distintas de ajuste de los clústers, para determinar cual debería ser la cantidad adecuada de k a utilizar.
+
+Como la función NbClust de su librería original poseía ciertas restricciones respecto a la cantidad de parámetros que se pueden pasar al algoritmo Kmeans, se generó una función auxiliar "NbClust2" a partir del código fuente original de la librería. Con esta pequeña modificación se puedo extender la cantidad iteraciones máximas posibles del K-medias hasta hallar la convergencia.
+
+
+```{r}
+source("NbClust2_kmeans.r")
+kmeans_euclid <- NbClust2(data = hip1[,-c(1,7)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid
+```
+
+De todos los índice y métricas que el NbClust corrió, 7 de ellos propusieron 2 clústers como la partición que mejor ajusta a los datos.
+
+A continuación se guarda el modelo de K-medias para k=2 y se procede a graficar la proyección de los clúster en los ejes de las componentes principales.
+
+
+```{r}
+set.seed(21240)
+hip_kmeans_final <- hip1 %>% select(., -c(1,7)) %>% kmeans(., 5)
+
+hip_kmeans_clust1 <- cbind(hip1, kmeans_clust = hip_kmeans_final$cluster)
+table(Symbad = hip_kmeans_clust1$Symbad_Hyades, Cluster = hip_kmeans_clust1$kmeans_clust)
+
+fviz_pca_ind(prcomp(hip_kmeans_clust1[,-c(1,7,8)]), 
+                title = "PCA - Hipparcos Kmeans",
+                habillage = hip_kmeans_final$cluster,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+```
+
+De los resultados del Kmeans se extrae que de la clusterización, 49 Hyades han sido clasifciadas dentro de un mismo clúster: el número 2. Dentro del cluster número 2 han sido agrupadas otras 315 estrellas que podrían resultar en potenciales candidatas a formar parter del clúster de estrellas Hyades.
+
+Sin embargo, convendría detenerse en ese clúster puntual y analizar los resultados de Silhoutte hacia dentro de ese clúster.
+
+
+```{r}
+sil_kmeans_final <- silhouette(hip_kmeans_final$cluster, dist(hip1[,-c(1,7)], method = "euclidian"))
+
+plot(sil_kmeans_final, main="Silhouette, k = 3",col=1:2 ,border = NA)
+
+sil_kmeans_final$
+  
+
+```
+
+De observar el gráfico de Silhouette, surge que del clúster número 2, no todas las estrellas parecerían ser similares hacia dentro del clúster. De hecho, parecería ser que un poco mas de la mitad de ellas debería pertencer al clúster 1 en vez del clúster 2.
+
+A continuación se adjuntan los datos de Silhouette al dataframe final y se procede a filtrar por todas las estrellas pertenecientes al clúster 2 que además posean un score de Silhouette positivo.
+
+```{r}
+
+hip_kmeans_clust1 <- hip_kmeans_clust1 %>% cbind(.,
+                                                 sil_clust = sil_kmeans_final[,1],
+                                                 sil_neigh = sil_kmeans_final[,2],
+                                                 sil_width = sil_kmeans_final[,3]
+                                                 )
+
+```
+
+```{r}
+
+
+hip_kmeans_clust1 %>% filter(., sil_clust == 2) %>% select(., -c(1:6,8:10)) 
+
+```
+
+Del listado del clúster 2 se desprende que las que tienen Silhouette mas bajo son aquellas que han sido identificadas como verdaderas Hyades.
+
+Con lo cual es probable que el clúster hasta acá aqui analizado posea algún grupo de estrellas no compatible con las características de la Hyades o mucho mas cercanas entre sí que las Hyades mismas.
+
+Por último se procederá a guardar los resultados finales como checkpoint del trabajo hasta aqui realizado en una salida de CSV.
+
+```{r}
+
+write_csv(hip_kmeans_clust1, "hip_kmeans_clust1.csv")
+```
+
+-Análisis PAM (Partition Around Medoids)
+
+```{r}
+source('PAM_loop.r')
+
+```
+
+-Distancia Euclídea
+
+```{r}
+diss_euclid_hip <-hip1[,2:6] %>% dist(., method = "euclidian")
+
+PAM_HIP_Euclid <- PAM_loop(diss_euclid_hip, hip1[,2:6], 20)
+
+PAM_HIP_Euclid
+
+```
+
+```{r}
+SSE <- PAM_HIP_Euclid[[1]]
+Sil <- PAM_HIP_Euclid[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+-Distancia de Canberra
+
+```{r}
+diss_canberra_hip <-hip1[,2:6] %>% dist(., method = "canberra")
+
+PAM_HIP_Canberra <- PAM_loop(x = diss_canberra_hip,
+                             data = hip1[, 2:6],
+                             k = 20)
+
+class(diss_canberra_hip)                             
+```
+
+
+```{r}
+SSE <- PAM_HIP_Canberra[[1]]
+Sil <- PAM_HIP_Canberra[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+-Distancia de Mahalanobis
+
+```{r}
+hip1_means <- colMeans(hip1[,2:6])
+hip1_Sx <- cov(hip1[,2:6])
+diss_mahalanobis_hip <- dist(hip1[, 2:6] %>% mahalanobis(., hip1_means, hip1_Sx))
+  
+PAM_HIP_Mahalanobis <- PAM_loop(x = diss_mahalanobis_hip,
+                          data = hip1[,2:6],
+                          k = 20)
+
+class(diss_mahalanobis_hip)
+```
+
+```{r}
+SSE <- PAM_HIP_Mahalanobis[[1]]
+Sil <- PAM_HIP_Mahalanobis[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+##Analisis Tycho
+
+```{r}
+tyc1 <- read.csv('../02.Preprocesamiento/tyc_version1.csv')
+
+```
+
+```{r}
+kmeans_euclid_tyc <- NbClust2(data = tyc1[,-c(1)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid_tyc
+
+```
+
+```{r}
+set.seed(1)
+tyc_kmeans_final <- tyc1 %>% select(., -c(1)) %>% kmeans(., 2)
+
+
+tyc_kmeans_clust1 <- cbind(tyc1, kmeans_clust = tyc_kmeans_final$cluster)
+#table(Symbad = tyc_kmeans_clust1$Symbad_Hyades, Cluster = tyc_kmeans_clust1$kmeans_clust)
+
+fviz_pca_ind(prcomp(tyc_kmeans_clust1[,-c(1,9)]), 
+                title = "PCA - Tycho Kmeans",
+                habillage = hip_kmeans_final$cluster,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+```
+
+```{r}
+sil_kmeans_final <- silhouette(tyc_kmeans_final$cluster, dist(tyc1[,-c(1)], method = "euclidian"))
+
+plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
+
+```
+
+#Análisis PAM para Tycho
+
+-Distancia Euclídea
+
+```{r}
+
+diss_euclid_tyc <-tyc1[,2:9] %>% dist(., method = "euclidian")
+
+PAM_TYC_Euclid <- PAM_loop(x = diss_euclid_tyc,
+                          data = tyc1[,2:9],
+                          k = 20)
+
+```
+
+```{r}
+SSE <- PAM_TYC_Euclid[[1]]
+Sil <- PAM_TYC_Euclid[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+-Distancia de Canberra
+
+```{r}
+diss_canberra_tyc <-tyc1[,2:9] %>% dist(., method = "canberra")
+
+PAM_TYC_Canberra <- PAM_loop(x = diss_canberra_tyc,
+                          data = tyc1[,2:9],
+                          k = 20)
+
+```
+
+
+```{r}
+SSE <- PAM_TYC_Canberra[[1]]
+Sil <- PAM_TYC_Canberra[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+-Distancia de Mahalanobis
+
+```{r}
+tyc1_means <- colMeans(tyc1[,2:9])
+tyc1_Sx <- cov(tyc1[,2:9])
+
+diss_mahalanobis_tyc <-tyc1[,2:9] %>% mahalanobis(., tyc1_means, tyc1_Sx)
+
+
+PAM_TYC_Mahalanobis <- PAM_loop(diss_mahalanobis_tyc,
+                          data = hip1[,2:9],
+                          k = 20)
+
+
+```
+
+```{r}
+SSE <- PAM_TYC_Mahalanobis[[1]]
+Sil <- PAM_TYC_Mahalanobis[[2]]
+par(mfrow=c(1,2))
+plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
