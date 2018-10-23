@@ -12,70 +12,82 @@ knitr::opts_chunk$set(fig.width=9, fig.height = 5)
 rm(list = ls())
 gc()
 
+library(knitr)
+library(webshot)
 library(dplyr)
+library(tidyr)
 library(dbscan)
 library(fpc)
 library(factoextra)
 library(mlr)
 library(gridExtra)
 library(ggpubr)
+library(ggthemes)
+source("DBSCAN_Loop.r")
 ```
+
+
+#Aproximacion del problema mediante clustering por densidad
+
+##Introduccion
+
+Dado el dataset de estrellas de Hiparcos y el set de Hyades identificadas previamente se procede a realizar experimentos de clustering por densidad mediante el algoritmo DBSCAN de la libreria fpc.
+En los mismos se hara enfasis en los siguientes puntos:
+
+*Seleccion de Variables del dataset origen
+*Hiperparametrizacion de _eps_ y _minPts_
+*Revision de la presencia de Hyades en los clusters
+
+Para este ultimo punto se intentará identificar cluster relativamente pequeños que contengan la mayor cantidad de las Hyades previamente señaladas como tales.
+
+
+## Constuccion de los experimentos
+
+Los experimentos con el algoritmo se construyen a partir de los siguientes pasos:
+
+1. Generacion de knnDistPlots sobre los _minPts_ cadidatos a fin de identificar los limites superior e inferior de _eps_ para la parametrizacion.
+2. Ejecucion y extraccion de resultados identificando para cada cluster de cada ejecucion la cantidad de Hyades (definidas)
+3. ilustracion de maxima cantidad de hyades en un cluster por ejecucion, tamaño del cluster y tamaño del cluster en relacion a la cantidad de hyades presentes (ratio)
+4. Conclusion y extraccion de candidatas cuando corresponda.
+
+##Definiciones
+
+*Se definio como rango de _minPts_ de 5 a 50 arbitrariamente.
+*Se establecieron 4 grandes experimentos variando las variables seleccionadas
+
+1. Medidas de Posicion (RA y DE)
+2. Vmag y B.V
+3. Todas las variables de Hiparcos
+4. Todas las variables, con exepcion de las medidas de posicion
+
+*Para cada salida de la hyperparametrizacion, se identifica visualmente si alguno de los test es aceptable para producir candidatos
+
+##Revision de Hyparcos
 
 ```{r}
 hip<-read.csv("..\\02.Preprocesamiento\\hip_version1.csv")
 summarizeColumns(hip)
-nrow(hip)
+#nrow(hip)
 ```
 
 
-Prueba 1 - medidas de posicion
+#Experimento 1 - Medidas de Posicion
 
 
 ```{r}
+par(mfrow=c(2,2))
 df<-hip %>% select(RA_J2000,DE_J2000)
 for (i in seq(5,50,5)) {
   kNNdistplot(df,i)
-  abline(h = .2, lty=2)
+  abline(h = .025, lty=2)
 }
 
 ```
 
-```{r}
-set.seed(123)
-db <- fpc::dbscan(df, eps = .5, MinPts = 40)
-db
-# Plot DBSCAN results
-plot(db, df, main = "DBSCAN", frame = FALSE)
-```
+* Se define el _eps_ entre 0.02 y 0.1
 
-Defino la funcion para ejecutar DBSCAN
-
-```{r}
-run_dbscan <- function(data, eps, minPts) {
-  tbl<-NULL
-  k<-1
-  for (i in eps) {
-    for (j in minPts) {
-      set.seed(123)
-      db <- fpc::dbscan(data, eps = i, MinPts = j)
-      tbl<-rbind(tbl,data.frame(cls=as.factor(db$cluster),hyad=hip$Symbad_Hyades) %>%
-                   mutate(hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
-                   group_by(cls,hyad) %>% count() %>%
-                   spread(hyad,n,fill = 0) %>% 
-                   mutate(eps=i,minPts=j,test=as.factor(k)))
-      k<-k+1
-    }
-  }
-  sorted.test<-order(levels(as.factor(tbl$test)))
-  tbl$test=factor(tbl$test,levels = sorted.test )
-  return(tbl)
-}
-```
-
-
-
-```{r}
-tbl.pos<-run_dbscan(df, seq(.2,1,.1), seq(5,50,1))
+```{r, warning=FALSE,error=FALSE}
+tbl.pos<-run_dbscan(df, seq(.02,.1,.01), seq(5,50,1))
 ```
 
 ```{r}
@@ -98,20 +110,21 @@ ggplot(data = tbl.pos.rt, aes(x=test)) +
 ```
 
 
+__OBS:__ No se visualizan clusters que presenten suficientes Hyades para tomar otras candidatas
 
 
 
 
-
-Escalo varaibles
+##Normalizacion de Variables
 ```{r}
 hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades))
 
 ```
 
-Prueba 2 - B.V y Vmag
+##Experimento 2 - B.V y Vmag
 
 ```{r}
+par(mfrow=c(2,2))
 df2<-hip.scaled %>% select(Vmag,B.V)
 for (i in seq(5,50,5)) {
   kNNdistplot(df2,i)
@@ -120,14 +133,8 @@ for (i in seq(5,50,5)) {
 
 ```
 
-```{r,fig.height=5}
-set.seed(123)
-db <- fpc::dbscan(df2, eps = .2, MinPts = 40)
-db
-# Plot DBSCAN results
-plot(db, df2, main = "DBSCAN", frame = FALSE)
-```
 
+* Se define el _eps_ entre 0.1 y 1
 
 ```{r,warning=FALSE,error=FALSE}
 tbl.vb<-run_dbscan(df2,seq(.1,1,.1),seq(5,50,1))
@@ -153,11 +160,13 @@ ggplot(data = tbl.vb.rt, aes(x=test)) +
   theme_tufte()
 ```
 
+__OBS:__ No se visualizan clusters que presenten suficientes Hyades para tomar otras candidatas
 
 
-Prueba 3 - Full dataset
+##Experimento 3 - Full dataset
 
 ```{r}
+par(mfrow=c(2,2))
 df3<-hip.scaled %>% select(-HIP,-Symbad_Hyades)
 for (i in seq(5,50,5)) {
   kNNdistplot(df3,i)
@@ -166,13 +175,7 @@ for (i in seq(5,50,5)) {
 
 ```
 
-```{r, warning=FALSE}
-set.seed(123)
-db <- fpc::dbscan(df3, eps = 1.5, MinPts = 40)
-db
-# Plot DBSCAN results
-plot(db, df3, main = "DBSCAN", frame = FALSE)
-```
+* Se define el _eps_ entre 0.5 y 2
 
 ```{r,warning=FALSE,error=FALSE}
 tbl.full<-run_dbscan(df3,seq(.5,2,.1),seq(5,50,1))
@@ -198,12 +201,11 @@ ggplot(data = tbl.full.rt, aes(x=test)) +
   theme_tufte()
 ```
 
+__OBS:__ La ejecucion 237 podria mostrar candidatas. Se repite esa en particular
 
 ```{r}
 tbl.full %>% filter(test==273)
 ```
-
-Repito el experimento para encontrar candidatas
 
 ```{r,warning=FALSE}
 set.seed(123)
@@ -213,9 +215,10 @@ cand<- data.frame(HIP=hip$HIP,Symbad_Hyades=hip$Symbad_Hyades,Cluster=db$cluster
 cand
 ```
 
-Prueba 4 - Sin distancias
+##Experimento 4 - Sin distancias
 
 ```{r}
+par(mfrow=c(2,2))
 df4<-hip.scaled %>% select(-HIP,-Symbad_Hyades,-RA_J2000,-DE_J2000)
 for (i in seq(5,50,5)) {
   kNNdistplot(df4,i)
@@ -224,13 +227,8 @@ for (i in seq(5,50,5)) {
 
 ```
 
-```{r, warning=FALSE}
-set.seed(123)
-db <- fpc::dbscan(df4, eps = 1.5, MinPts = 40)
-db
-# Plot DBSCAN results
-plot(db, df4, main = "DBSCAN", frame = FALSE)
-```
+
+* Se define el _eps_ entre 0.5 y 2
 
 ```{r,warning=FALSE,error=FALSE}
 tbl.ndis<-run_dbscan(df4,seq(.5,2,.1),seq(5,50,1))
@@ -256,8 +254,7 @@ ggplot(data = tbl.ndis.rt, aes(x=test)) +
   theme_tufte()
 ```
 
-
-Nuevamente, repito el experimento para encontrar candidatas
+__OBS:__ Resaltan las ejecuciones 19 132. Nuevamente, repito el experimento para encontrar candidatas
 
 ```{r}
 tbl.ndis.rt %>% filter(test %in% c(19,132))
@@ -277,15 +274,11 @@ cand3<- data.frame(HIP=hip$HIP,Symbad_Hyades=hip$Symbad_Hyades,Cluster=db$cluste
 cand3
 ```
 
-Prueba con OPTICS
-
-```{r}
-op<-optics(df3,eps = 2,minPts = 12)
-plot(op)
-```
 
 
-Mergeo la seleccion de candidatas
+##Revision de Candidatas
+
+Se cruzan las estrellas candidatas de los experimentos resaltados anteriormente
 
 ```{r}
 cand.fil<-cand %>% filter(Symbad_Hyades==FALSE)
@@ -296,7 +289,7 @@ cand.list
 ```
 
 
-Guardo las candidatas
+
 
 ```{r}
 write.csv(cand.list, "DBSCAN - Candidatas.csv")

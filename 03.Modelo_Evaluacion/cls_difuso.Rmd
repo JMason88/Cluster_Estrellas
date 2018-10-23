@@ -8,39 +8,84 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(fig.width=9, fig.height = 5) 
 
 rm(list = ls())
 gc()
 
 library(dplyr)
+library(tidyr)
 library(factoextra)
 library(mlr)
 library(gridExtra)
 library(ggpubr)
 library(cluster)
+library(ggthemes)
 ```
 
 ```{r}
 hip<-read.csv("..\\02.Preprocesamiento\\hip_version1.csv")
 summarizeColumns(hip)
-nrow(hip)
 ```
 
-Escalo varaibles
+Escalo varaibles y calculo matriz de distancias
 ```{r}
-hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades))
-
-```
-
-```{r}
-fc1<-hip.scaled %>% select(-HIP,-Symbad_Hyades)
-fuzz1<-fanny(fc1,k=3,memb.exp = 1.1)
+hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades)) %>%
+  select(-HIP,-Symbad_Hyades)
+hip.eucl<-daisy(as.matrix(hip.scaled), metric = "euclidean")
+hip.gower<-daisy(as.matrix(hip.scaled), metric = "gower")
+hip.manh<-daisy(as.matrix(hip.scaled),metric = "manhattan")
 ```
 
 
 ```{r}
-fuzz1$coeff
-table(fuzz1$clustering, hip.scaled$Symbad_Hyades)
+run_fuzzy<-function(data,k_cls) {
+  k<-1
+  coef<-NULL
+  fuzz.sal<-NULL
+  for (i in k_cls) {
+    for (j in seq(1.1,2,.1)) {
+      set.seed(123)
+      fuzz1<-fanny(data,k=i,memb.exp = j, diss = T)
+      coef<-rbind(coef,c(fuzz1$coeff,test=k))
+      out<-as.data.frame(fuzz1$membership) %>% mutate(obs=1:nrow(.)) %>% select(obs, everything())
+      colnames(out)<-c("obs",1:i)
+      out<-out %>% gather(key="Cluster", value="Membership",-obs) %>% mutate(Membership=round(Membership,2)) %>% 
+        group_by(obs) %>% filter(Membership==max(Membership)) %>% distinct(obs, .keep_all = T) %>% 
+        arrange(obs) %>% ungroup()
+      out<-out %>% mutate(hyad=hip$Symbad_Hyades, hyad=as.factor(ifelse(hyad,"Hyades","No_Hyades"))) %>% 
+        filter(Membership>.6) %>% group_by(Cluster, hyad) %>% summarize(tot=n()) %>% 
+        spread(hyad,tot,fill = 0) %>% mutate(k_n=i, memb.exp=j, test=as.factor(k))
+      fuzz.sal<-rbind(fuzz.sal,out)
+      k<-k+1
+    }
+  }
+  sorted.test<-order(levels(as.factor(fuzz.sal$test)))
+  fuzz.sal$test=factor(fuzz.sal$test,levels = sorted.test )
+  return(list(coef=as.data.frame(coef),clustering=fuzz.sal))
+}
+```
+
+```{r, warning=FALSE}
+fzzy_gower<-run_fuzzy(hip.gower,c(6))
+
+fzzy_gower.rt<-fzzy_gower$clustering %>% mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% 
+  group_by(test) %>% filter(Hyades==max(Hyades)) %>% ungroup() %>% arrange(test)
+fzzy_gower.rt
+
+
+fuzz1<-fanny(hip.gower,k=3,memb.exp = 1.1, diss = T)
+c(fuzz1$coeff,test=1)
+```
+
+
+```{r}
+
+
+
+
+```
+
+```{r}
+plot(silhouette(fuzz1, border=NA, col=1:3))
 ```
 
