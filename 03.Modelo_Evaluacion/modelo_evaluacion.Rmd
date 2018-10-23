@@ -187,7 +187,7 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 diss_canberra_hip <-hip1[,2:8] %>% dist(., method = "canberra")
 
 
-PAM_HIP_Canberra <- PAM_loop(x = diss_canberra_hip,
+PAM_HIP_Canberra <- PAM_loop(diss_canberra_hip,
                           data = hip1[,2:8],
                           k = 20)
 
@@ -207,12 +207,13 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 -Distancia de Mahalanobis
 
 ```{r}
-hip1_means <- colMeans(hip1[,2:8])
-hip1_Sx <- cov(hip1[,2:8])
-diss_mahalanobis_hip <-hip1[,2:8] %>% mahalanobis(., hip1_means, hip1_Sx)
+
+library(cluster)
+library(ClusterR)
+diss_mahalanobis_hip <- distance_matrix(hip1[,2:8],method = "mahalanobis")
 
 
-PAM_HIP_Mahalanobis <- PAM_loop(x = diss_mahalanobis_hip,
+PAM_HIP_Mahalanobis <- PAM_loop(diss_mahalanobis_hip,
                           data = hip1[,2:8],
                           k = 20)
 
