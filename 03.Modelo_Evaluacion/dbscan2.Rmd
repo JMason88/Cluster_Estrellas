@@ -53,12 +53,13 @@ Los experimentos con el algoritmo se construyen a partir de los siguientes pasos
 ##Definiciones
 
 *Se definio como rango de _minPts_ de 5 a 50 arbitrariamente.
+
 *Se establecieron 4 grandes experimentos variando las variables seleccionadas
 
 1. Medidas de Posicion (RA y DE)
 2. Vmag y B.V
 3. Todas las variables de Hiparcos
-4. Todas las variables, con exepcion de las medidas de posicion
+4. Todas las variables, con excepcion de las medidas de posicion
 
 *Para cada salida de la hyperparametrizacion, se identifica visualmente si alguno de los test es aceptable para producir candidatos
 
