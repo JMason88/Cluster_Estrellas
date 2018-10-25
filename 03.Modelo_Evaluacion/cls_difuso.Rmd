@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 gc()
 
+library(knitr)
+library(webshot)
 library(dplyr)
 library(tidyr)
 library(factoextra)
