@@ -261,53 +261,6 @@ write_csv(hip_pamk5_clust, "hip_pamk5_clust.csv")
 ```
 Este podría ser el listado de Hyades candidatas.
 
--Distancia de Canberra
-
-```{r}
-diss_canberra_hip <-hip1[,2:8] %>% dist(., method = "canberra")
-
-
-PAM_HIP_Canberra <- PAM_loop(diss_canberra_hip,
-                          data = hip1[,2:8],
-                          k = 20)
-
-```
-
-
-```{r}
-SSE <- PAM_HIP_Canberra[[1]]
-Sil <- PAM_HIP_Canberra[[2]]
-par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
-
-```
-
-
--Distancia de Mahalanobis
-
-```{r}
-
-library(cluster)
-library(ClusterR)
-diss_mahalanobis_hip <- distance_matrix(hip1[,2:8],method = "mahalanobis")
-
-
-PAM_HIP_Mahalanobis <- PAM_loop(diss_mahalanobis_hip,
-                          data = hip1[,2:8],
-                          k = 20)
-
-
-```
-
-```{r}
-SSE <- PAM_HIP_Mahalanobis[[1]]
-Sil <- PAM_HIP_Mahalanobis[[2]]
-par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
-
-```
 
 
 ##Analisis Tycho
@@ -315,10 +268,14 @@ plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 ```{r}
 tyc1 <- read.csv('../02.Preprocesamiento/tyc_version1.csv')
 
+sapply(tyc1, function(x) sum(is.na(x)))
+
 ```
 
 ```{r}
-kmeans_euclid_tyc <- NbClust2(data = tyc1[,-c(1)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
+source("kmeans_loop.r")
+
+kmeans_euclid_tyc <- kmeans_loop(x = dist(tyc1[,-c(1,10)]), data = tyc1, k=10)
 kmeans_euclid_tyc
 
 ```
