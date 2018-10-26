@@ -85,7 +85,7 @@ Como la función NbClust de su librería original poseía ciertas restricciones 
 
 ```{r}
 source("NbClust2_kmeans.r")
-kmeans_euclid <- NbClust2(data = hip1[,-c(1,9)], min.nc = 2, max.nc = 20, method = "kmeans", index = "all", max.iter = 25)
+kmeans_euclid <- NbClust2(data = hip1[,-c(1,9)], min.nc = 2, max.nc = 10, method = "kmeans", index = "all", max.iter = 25)
 kmeans_euclid
 ```
 
@@ -180,6 +180,86 @@ plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
 plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
 
 ```
+
+EL resultado de Silhouette parecería indicar que 2 o 5 clústers podrían ser el número adecuado de k.
+
+#Analisis PAM para K=2
+
+```{r}
+PAM_HIP_Euclid_k2 <- pam(diss_euclid_hip, 2, diss = T)
+
+
+hip_pam_clustk2 <- cbind(hip1, PAM_clust = PAM_HIP_Euclid_k2$clustering)
+
+#######         Hyades vs Cluster analysis
+
+table(Symbad = hip_pam_clustk2$Symbad_Hyades, Cluster = hip_pam_clustk2$PAM_clust)
+
+#######         PCA
+
+fviz_pca_ind(prcomp(hip_pam_clustk2[,-c(1,9,10)]), 
+                title = "PCA - Hipparcos PAM",
+                habillage = hip_pam_clustk2$PAM_clust,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+
+#######         Silhouette
+
+sil_pamk2_final <- silhouette(hip_pam_clustk2$PAM_clust, diss_euclid_hip)
+
+plot(sil_pamk2_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
+
+```
+
+#Analisis PAM para K=3
+
+```{r}
+PAM_HIP_Euclid_k5 <- pam(diss_euclid_hip, 5, diss = T)
+
+hip_pam_clustk5 <- cbind(hip1, PAM_clust = PAM_HIP_Euclid_k5$clustering)
+
+#######         Hyades vs Cluster analysis
+
+table(Symbad = hip_pam_clustk5$Symbad_Hyades, Cluster = hip_pam_clustk5$PAM_clust)
+
+#######         PCA
+
+fviz_pca_ind(prcomp(hip_pam_clustk5[,-c(1,9,10)]), 
+                title = "PCA - Hipparcos PAM",
+                habillage = hip_pam_clustk5$PAM_clust,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+
+#######         Silhouette
+
+sil_pamk5_final <- silhouette(hip_pam_clustk5$PAM_clust, diss_euclid_hip)
+
+plot(sil_pamk5_final, main="Silhouette, k = 5",col=1:5 ,border = NA)
+
+```
+En el cuarto cluster se agrupan 49 Hyades. Este cluster parecería ser un buen lugar para hallar estrellas candidatas.
+
+```{r}
+
+hip_pam_clustk5 <- hip_pam_clustk5 %>% cbind(.,
+                                                 sil_clust = sil_pamk5_final[,1],
+                                                 sil_neigh = sil_pamk5_final[,2],
+                                                 sil_width = sil_pamk5_final[,3]
+                                                 )
+
+
+hip_pamk5_clust <- hip_pam_clustk5 %>% filter(., sil_clust == 4 & sil_width > 0 ) %>% select(., -c(1:8,10:12)) 
+
+hip_pamk5_clust
+write_csv(hip_pamk5_clust, "hip_pamk5_clust.csv")
+```
+Este podría ser el listado de Hyades candidatas.
 
 -Distancia de Canberra
 
