@@ -272,38 +272,7 @@ sapply(tyc1, function(x) sum(is.na(x)))
 
 ```
 
-```{r}
-source("kmeans_loop.r")
-
-kmeans_euclid_tyc <- kmeans_loop(x = dist(tyc1[,-c(1,10)]), data = tyc1, k=10)
-kmeans_euclid_tyc
-
-```
-
-```{r}
-set.seed(1)
-tyc_kmeans_final <- tyc1 %>% select(., -c(1)) %>% kmeans(., 2)
-
-
-tyc_kmeans_clust1 <- cbind(tyc1, kmeans_clust = tyc_kmeans_final$cluster)
-#table(Symbad = tyc_kmeans_clust1$Symbad_Hyades, Cluster = tyc_kmeans_clust1$kmeans_clust)
-
-fviz_pca_ind(prcomp(tyc_kmeans_clust1[,-c(1,9)]), 
-                title = "PCA - Tycho Kmeans",
-                habillage = hip_kmeans_final$cluster,
-                palette = "uchicago",
-                geom = "point", 
-                ggtheme = theme_classic(),
-                legend = "bottom", axes = c(1,2))
-
-```
-
-```{r}
-sil_kmeans_final <- silhouette(tyc_kmeans_final$cluster, dist(tyc1[,-c(1)], method = "euclidian"))
-
-plot(sil_kmeans_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
-
-```
+Considerando los resultados de PAM para Hipparcos y que su ajuste es mejor para clusterizar las Hyades, consideraremos para el análisis de las Tycho el método de clusterización PAM (Partition around Medoids)
 
 #Análisis PAM para Tycho
 
@@ -315,7 +284,7 @@ diss_euclid_tyc <-tyc1[,2:9] %>% dist(., method = "euclidian")
 
 PAM_TYC_Euclid <- PAM_loop(x = diss_euclid_tyc,
                           data = tyc1[,2:9],
-                          k = 20)
+                          k = 10)
 
 ```
 
