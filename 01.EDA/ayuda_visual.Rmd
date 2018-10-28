@@ -27,11 +27,11 @@ tycho <- read_xlsx("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 3)
 ```
 
 ```{r}
-dfSummary(hip)
+dfSummary(hip, plain.ascii = F)
 ```
 
 ```{r}
-dfSummary(tycho)
+dfSummary(tycho, plain.ascii = F)
 ```
 
 

@@ -129,157 +129,135 @@ $(document).ready(function () {
 </div>
 
 
-<pre class="r"><code>dfSummary(hip)</code></pre>
-<pre><code>## Data Frame Summary   
-## hip     
-## N: 2655   
-## -----------------------------------------------------------------------------------------------------------------------------------
-## No   Variable    Stats / Values                    Freqs (% of Valid)     Text Graph                           Valid      Missing  
-## ---- ----------- --------------------------------- ---------------------- ------------------------------------ ---------- ---------
-## 1    HIP         mean (sd) : 21210.44 (4320.41)    2655 distinct values           : .                          2655       0        
-##      [numeric]   min &lt; med &lt; max :                                        . : : : : : : : : :                  (100%)     (0%)     
-##                  13510 &lt; 21089 &lt; 28887                                    : : : : : : : : : :                                      
-##                  IQR (CV) : 7310 (0.2)                                    : : : : : : : : : :                                      
-##                                                                           : : : : : : : : : :                                      
+<pre class="r"><code>dfSummary(hip, plain.ascii = F)</code></pre>
+<pre><code>## ### Data Frame Summary   
+## **hip**     
+## **N:** 2655   
+## -----------------------------------------------------------------------------------------------------------
+## No   Variable    Stats / Values                    Freqs (% of Valid)     Text Graph   Valid      Missing  
+## ---- ----------- --------------------------------- ---------------------- ------------ ---------- ---------
+## 1    HIP\        mean (sd) : 21210.44 (4320.41)\   2655 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  13510 &lt; 21089 &lt; 28887\                                                                    
+##                  IQR (CV) : 7310 (0.2)                                                                     
 ## 
-## 2    RA_J2000    mean (sd) : 4.54 (0.91)           2655 distinct values       . . : .   . : .                  2655       0        
-##      [numeric]   min &lt; med &lt; max :                                        : : : : : : : : : :                  (100%)     (0%)     
-##                  2.9 &lt; 4.52 &lt; 6.1                                         : : : : : : : : : :                                      
-##                  IQR (CV) : 1.57 (0.2)                                    : : : : : : : : : :                                      
-##                                                                           : : : : : : : : : :                                      
+## 2    RA_J2000\   mean (sd) : 4.54 (0.91)\          2655 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  2.9 &lt; 4.52 &lt; 6.1\                                                                         
+##                  IQR (CV) : 1.57 (0.2)                                                                     
 ## 
-## 3    DE_J2000    mean (sd) : 13.9 (6.16)           2655 distinct values   : : . . . : . . . :                  2655       0        
-##      [numeric]   min &lt; med &lt; max :                                        : : : : : : : : : :                  (100%)     (0%)     
-##                  3.41 &lt; 13.89 &lt; 24.5                                      : : : : : : : : : :                                      
-##                  IQR (CV) : 10.72 (0.44)                                  : : : : : : : : : :                                      
-##                                                                           : : : : : : : : : :                                      
+## 3    DE_J2000\   mean (sd) : 13.9 (6.16)\          2655 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  3.41 &lt; 13.89 &lt; 24.5\                                                                      
+##                  IQR (CV) : 10.72 (0.44)                                                                   
 ## 
-## 4    Plx         mean (sd) : 8.83 (10.07)          1361 distinct values   :                                    2655       0        
-##      [numeric]   min &lt; med &lt; max :                                        :                                    (100%)     (0%)     
-##                  0.03 &lt; 6.06 &lt; 172.78                                     :                                                        
-##                  IQR (CV) : 6.42 (1.14)                                   :                                                        
-##                                                                           : .                                                      
+## 4    Plx\        mean (sd) : 8.83 (10.07)\         1361 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  0.03 &lt; 6.06 &lt; 172.78\                                                                     
+##                  IQR (CV) : 6.42 (1.14)                                                                    
 ## 
-## 5    pmRA        mean (sd) : 22.5 (74.69)          2245 distinct values     :                                  2655       0        
-##      [numeric]   min &lt; med &lt; max :                                          :                                  (100%)     (0%)     
-##                  -330.66 &lt; 4.78 &lt; 1999.05                                   :                                                      
-##                  IQR (CV) : 28.99 (3.32)                                    :                                                      
-##                                                                             :                                                      
+## 5    pmRA\       mean (sd) : 22.5 (74.69)\         2245 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  -330.66 &lt; 4.78 &lt; 1999.05\                                                                 
+##                  IQR (CV) : 28.99 (3.32)                                                                   
 ## 
-## 6    pmDE        mean (sd) : -29.4 (72.37)         2196 distinct values                   :                    2655       0        
-##      [numeric]   min &lt; med &lt; max :                                                        :                    (100%)     (0%)     
-##                  -1570.64 &lt; -13.19 &lt; 238.42                                               :                                        
-##                  IQR (CV) : 26.9 (-2.46)                                                  :                                        
-##                                                                                           :                                        
+## 6    pmDE\       mean (sd) : -29.4 (72.37)\        2196 distinct values                2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  -1570.64 &lt; -13.19 &lt; 238.42\                                                               
+##                  IQR (CV) : 26.9 (-2.46)                                                                   
 ## 
-## 7    Vmag        mean (sd) : 8.34 (1.51)           656 distinct values                :                        2655       0        
-##      [numeric]   min &lt; med &lt; max :                                                    :                        (100%)     (0%)     
-##                  0.45 &lt; 8.42 &lt; 12.66                                                : : :                                          
-##                  IQR (CV) : 1.8 (0.18)                                              : : :                                          
-##                                                                                 . : : : : :                                        
+## 7    Vmag\       mean (sd) : 8.34 (1.51)\          656 distinct values                 2655\      0\       
+##      [numeric]   min &lt; med &lt; max :\                                                    (100%)     (0%)     
+##                  0.45 &lt; 8.42 &lt; 12.66\                                                                      
+##                  IQR (CV) : 1.8 (0.18)                                                                     
 ## 
-## 8    B-V         mean (sd) : 0.63 (0.46)           1269 distinct values       :                                2640       15       
-##      [numeric]   min &lt; med &lt; max :                                          . :                                (99.44%)   (0.56%)  
-##                  -0.22 &lt; 0.56 &lt; 3.1                                         : :                                                    
-##                  IQR (CV) : 0.66 (0.73)                                   : : : : .                                                
-##                                                                           : : : : : :                                              
-## -----------------------------------------------------------------------------------------------------------------------------------</code></pre>
-<pre class="r"><code>dfSummary(tycho)</code></pre>
-<pre><code>## Data Frame Summary   
-## tycho     
-## N: 16258   
-## --------------------------------------------------------------------------------------------------------------------------------------------
-## No   Variable       Stats / Values                      Freqs (% of Valid)      Text Graph                             Valid      Missing   
-## ---- -------------- ----------------------------------- ----------------------- -------------------------------------- ---------- ----------
-## 1    recno          mean (sd) : 73094.02 (45031.95)     16258 distinct values         .     :                          16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                 :     :                          (100%)     (0%)      
-##                     3569 &lt; 57089.5 &lt; 156305                                     :     :     :                                               
-##                     IQR (CV) : 52262.5 (0.62)                                   :     :     :     .                                         
-##                                                                                 :     :     :     :                                         
+## 8    B-V\        mean (sd) : 0.63 (0.46)\          1269 distinct values                2640\      15\      
+##      [numeric]   min &lt; med &lt; max :\                                                    (99.44%)   (0.56%)  
+##                  -0.22 &lt; 0.56 &lt; 3.1\                                                                       
+##                  IQR (CV) : 0.66 (0.73)                                                                    
+## -----------------------------------------------------------------------------------------------------------</code></pre>
+<pre class="r"><code>dfSummary(tycho, plain.ascii = F)</code></pre>
+<pre><code>## ### Data Frame Summary   
+## **tycho**     
+## **N:** 16258   
+## --------------------------------------------------------------------------------------------------------------------------
+## No   Variable       Stats / Values                      Freqs (% of Valid)      Text Graph           Valid      Missing   
+## ---- -------------- ----------------------------------- ----------------------- -------------------- ---------- ----------
+## 1    recno\         mean (sd) : 73094.02 (45031.95)\    16258 distinct values                        16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     3569 &lt; 57089.5 &lt; 156305\                                                                              
+##                     IQR (CV) : 52262.5 (0.62)                                                                             
 ## 
-## 2    TYCID1         mean (sd) : 897.7 (535.94)          283 distinct values           :     :                          16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                 :     :                          (100%)     (0%)      
-##                     51 &lt; 723 &lt; 1868                                             :     :     :                                               
-##                     IQR (CV) : 638 (0.6)                                        :     :     :     .                                         
-##                                                                                 :     :     :     :                                         
+## 2    TYCID1\        mean (sd) : 897.7 (535.94)\         283 distinct values                          16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     51 &lt; 723 &lt; 1868\                                                                                      
+##                     IQR (CV) : 638 (0.6)                                                                                  
 ## 
-## 3    TYCID2         mean (sd) : 893.51 (635.11)         2616 distinct values    : : .                                  16258      0         
-##      [numeric]      min &lt; med &lt; max :                                           : : :                                  (100%)     (0%)      
-##                     1 &lt; 789 &lt; 3944                                              : : : .                                                     
-##                     IQR (CV) : 842 (0.71)                                       : : : : .                                                   
-##                                                                                 : : : : : . .                                               
+## 3    TYCID2\        mean (sd) : 893.51 (635.11)\        2616 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     1 &lt; 789 &lt; 3944\                                                                                       
+##                     IQR (CV) : 842 (0.71)                                                                                 
 ## 
-## 4    TYCID3         mean (sd) : 1 (0.02)                1 : 16254 (100.0%)      IIIIIIIIIIIIIIII                       16258      0         
-##      [numeric]      min &lt; med &lt; max :                   2 :     4 (  0.0%)                                             (100%)     (0%)      
-##                     1 &lt; 1 &lt; 2                                                                                                               
-##                     IQR (CV) : 0 (0.02)                                                                                                     
+## 4    TYCID3\        mean (sd) : 1 (0.02)\               1 : 16254 (100.0%)\     IIIIIIIIIIIIIIII \   16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                  2 :     4 (  0.0%)                           (100%)     (0%)      
+##                     1 &lt; 1 &lt; 2\                                                                                            
+##                     IQR (CV) : 0 (0.02)                                                                                   
 ## 
-## 5    RA_J2000_24    mean (sd) : 4.86 (0.91)             16258 distinct values                   . :                    16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                       . . : :                    (100%)     (0%)      
-##                     2.9 &lt; 5.06 &lt; 6.1                                                      . : : : :                                         
-##                     IQR (CV) : 1.49 (0.19)                                      : . : : : : : : : :                                         
-##                                                                                 : : : : : : : : : :                                         
+## 5    RA_J2000_24\   mean (sd) : 4.86 (0.91)\            16258 distinct values                        16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     2.9 &lt; 5.06 &lt; 6.1\                                                                                     
+##                     IQR (CV) : 1.49 (0.19)                                                                                
 ## 
-## 6    DE_J2000       mean (sd) : 13.97 (6.24)            16258 distinct values   : . . .     . . : :                    16258      0         
-##      [numeric]      min &lt; med &lt; max :                                           : : : : : : : : : :                    (100%)     (0%)      
-##                     3.4 &lt; 14.05 &lt; 24.5                                          : : : : : : : : : :                                         
-##                     IQR (CV) : 11.02 (0.45)                                     : : : : : : : : : :                                         
-##                                                                                 : : : : : : : : : :                                         
+## 6    DE_J2000\      mean (sd) : 13.97 (6.24)\           16258 distinct values                        16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     3.4 &lt; 14.05 &lt; 24.5\                                                                                   
+##                     IQR (CV) : 11.02 (0.45)                                                                               
 ## 
-## 7    pmRA           mean (sd) : 6.26 (23.53)            1480 distinct values            :                              16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                   :                              (100%)     (0%)      
-##                     -149.3 &lt; 1.8 &lt; 198.2                                                :                                                   
-##                     IQR (CV) : 13 (3.76)                                                :                                                   
-##                                                                                       . : .                                                 
+## 7    pmRA\          mean (sd) : 6.26 (23.53)\           1480 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     -149.3 &lt; 1.8 &lt; 198.2\                                                                                 
+##                     IQR (CV) : 13 (3.76)                                                                                  
 ## 
-## 8    pmDE           mean (sd) : -12.44 (20.92)          1349 distinct values              :                            16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                     :                            (100%)     (0%)      
-##                     -199.9 &lt; -7.6 &lt; 177                                                 . :                                                 
-##                     IQR (CV) : 14.2 (-1.68)                                             : :                                                 
-##                                                                                       . : :                                                 
+## 8    pmDE\          mean (sd) : -12.44 (20.92)\         1349 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     -199.9 &lt; -7.6 &lt; 177\                                                                                  
+##                     IQR (CV) : 14.2 (-1.68)                                                                               
 ## 
-## 9    BT             mean (sd) : 10.74 (1.22)            4343 distinct values                    :                      16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                           :                      (100%)     (0%)      
-##                     2.79 &lt; 11.04 &lt; 12.85                                                      : :                                           
-##                     IQR (CV) : 1.36 (0.11)                                                    : : .                                         
-##                                                                                           . : : : :                                         
+## 9    BT\            mean (sd) : 10.74 (1.22)\           4343 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     2.79 &lt; 11.04 &lt; 12.85\                                                                                 
+##                     IQR (CV) : 1.36 (0.11)                                                                                
 ## 
-## 10   VT             mean (sd) : 9.94 (1.1)              4048 distinct values                    :                      16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                           :                      (100%)     (0%)      
-##                     0.77 &lt; 10.22 &lt; 11.95                                                        :                                           
-##                     IQR (CV) : 1.23 (0.11)                                                    : : .                                         
-##                                                                                             . : : :                                         
+## 10   VT\            mean (sd) : 9.94 (1.1)\             4048 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     0.77 &lt; 10.22 &lt; 11.95\                                                                                 
+##                     IQR (CV) : 1.23 (0.11)                                                                                
 ## 
-## 11   V              mean (sd) : 9.87 (1.1)              15844 distinct values                   :                      16258      0         
-##      [numeric]      min &lt; med &lt; max :                                                           :                      (100%)     (0%)      
-##                     0.58 &lt; 10.14 &lt; 11.93                                                        :                                           
-##                     IQR (CV) : 1.24 (0.11)                                                    : : .                                         
-##                                                                                             . : : :                                         
+## 11   V\             mean (sd) : 9.87 (1.1)\             15844 distinct values                        16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     0.58 &lt; 10.14 &lt; 11.93\                                                                                 
+##                     IQR (CV) : 1.24 (0.11)                                                                                
 ## 
-## 12   B-V            mean (sd) : 0.68 (0.45)             3439 distinct values        :                                  16258      0         
-##      [numeric]      min &lt; med &lt; max :                                               :                                  (100%)     (0%)      
-##                     -0.46 &lt; 0.56 &lt; 3.39                                           . :                                                       
-##                     IQR (CV) : 0.66 (0.67)                                        : : : :                                                   
-##                                                                                   : : : : .                                                 
+## 12   B-V\           mean (sd) : 0.68 (0.45)\            3439 distinct values                         16258\     0\        
+##      [numeric]      min &lt; med &lt; max :\                                                               (100%)     (0%)      
+##                     -0.46 &lt; 0.56 &lt; 3.39\                                                                                  
+##                     IQR (CV) : 0.66 (0.67)                                                                                
 ## 
-## 13   HD             mean (sd) : 137082.43 (117395.4)    5751 distinct values    :                                      5758       10500     
-##      [numeric]      min &lt; med &lt; max :                                           :                                      (35.42%)   (64.58%)  
-##                     18019 &lt; 39727.5 &lt; 287468                                    :                                                           
-##                     IQR (CV) : 219645 (0.86)                                    :               : :                                         
-##                                                                                 :               : :                                         
+## 13   HD\            mean (sd) : 137082.43 (117395.4)\   5751 distinct values                         5758\      10500\    
+##      [numeric]      min &lt; med &lt; max :\                                                               (35.42%)   (64.58%)  
+##                     18019 &lt; 39727.5 &lt; 287468\                                                                             
+##                     IQR (CV) : 219645 (0.86)                                                                              
 ## 
-## 14   HIP            mean (sd) : 21327.99 (4326.46)      2470 distinct values          . : .     .                      2483       13775     
-##      [numeric]      min &lt; med &lt; max :                                           . : : : : : : : : :                    (15.27%)   (84.73%)  
-##                     13526 &lt; 21257 &lt; 28882                                       : : : : : : : : : :                                         
-##                     IQR (CV) : 7368.5 (0.2)                                     : : : : : : : : : :                                         
-##                                                                                 : : : : : : : : : :                                         
+## 14   HIP\           mean (sd) : 21327.99 (4326.46)\     2470 distinct values                         2483\      13775\    
+##      [numeric]      min &lt; med &lt; max :\                                                               (15.27%)   (84.73%)  
+##                     13526 &lt; 21257 &lt; 28882\                                                                                
+##                     IQR (CV) : 7368.5 (0.2)                                                                               
 ## 
-## 15   Plx            mean (sd) : 7.99 (6.45)             1135 distinct values    :                                      2253       14005     
-##      [numeric]      min &lt; med &lt; max :                                           :                                      (13.86%)   (86.14%)  
-##                     1.01 &lt; 6.09 &lt; 87.9                                          :                                                           
-##                     IQR (CV) : 5.52 (0.81)                                      :                                                           
-##                                                                                 : : .                                                       
-## --------------------------------------------------------------------------------------------------------------------------------------------</code></pre>
+## 15   Plx\           mean (sd) : 7.99 (6.45)\            1135 distinct values                         2253\      14005\    
+##      [numeric]      min &lt; med &lt; max :\                                                               (13.86%)   (86.14%)  
+##                     1.01 &lt; 6.09 &lt; 87.9\                                                                                   
+##                     IQR (CV) : 5.52 (0.81)                                                                                
+## --------------------------------------------------------------------------------------------------------------------------</code></pre>
 
 
 
