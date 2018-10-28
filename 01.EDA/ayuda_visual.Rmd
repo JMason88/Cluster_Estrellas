@@ -11,6 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(summarytools)
+library(mlr)
 ```
 
 ```{r , echo=FALSE}
@@ -30,10 +31,19 @@ tycho <- read_xlsx("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 3)
 dfSummary(hip, plain.ascii = F)
 ```
 
+
+```{r}
+summarizeColumns(hip)
+```
+
+
+
 ```{r}
 dfSummary(tycho, plain.ascii = F)
 ```
 
-
+```{r}
+summarizeColumns(tycho)
+```
 
 
