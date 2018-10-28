@@ -2,7 +2,9 @@
 title: "Preprocesamiento"
 author: "JMason88"
 date: "7 de octubre de 2018"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
