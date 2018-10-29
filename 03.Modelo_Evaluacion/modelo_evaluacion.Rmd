@@ -254,7 +254,7 @@ hip_pam_clustk5 <- hip_pam_clustk5 %>% cbind(.,
                                                  )
 
 
-hip_pamk5_clust <- hip_pam_clustk5 %>% filter(., sil_clust == 4 & sil_width > 0 ) %>% select(., -c(1:8,10:12)) 
+hip_pamk5_clust <- hip_pam_clustk5 %>% filter(., sil_clust == 4 & sil_width > 0 ) %>% select(., -c(2:8,10:12)) 
 
 hip_pamk5_clust
 write_csv(hip_pamk5_clust, "hip_pamk5_clust.csv")
@@ -292,80 +292,99 @@ PAM_TYC_Euclid <- PAM_loop(x = diss_euclid_tyc,
 SSE <- PAM_TYC_Euclid[[1]]
 Sil <- PAM_TYC_Euclid[[2]]
 par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
-
-```
-
--Distancia de Canberra
-
-```{r}
-diss_canberra_tyc <-tyc1[,2:9] %>% dist(., method = "canberra")
-
-PAM_TYC_Canberra <- PAM_loop(x = diss_canberra_tyc,
-                          data = tyc1[,2:9],
-                          k = 20)
+plot(2:(11), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(11), SSE , type="b", xlab="k", sub = "SSE")
 
 ```
 
 
 ```{r}
-SSE <- PAM_TYC_Canberra[[1]]
-Sil <- PAM_TYC_Canberra[[2]]
-par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+PAM_TYC_Euclid_k2 <- pam(diss_euclid_tyc, 2, diss = T)
 
-```
+tyc1$Symbad_Hyades[is.na(tyc1$Symbad_Hyades)] <- FALSE
 
+tyc_pam_clustk2 <- cbind(tyc1, PAM_clust = PAM_TYC_Euclid_k2$clustering)
 
--Distancia de Mahalanobis
+#######         Hyades vs Cluster analysis
 
-```{r}
-tyc1_means <- colMeans(tyc1[,2:9])
-tyc1_Sx <- cov(tyc1[,2:9])
+table(Symbad = tyc_pam_clustk2$Symbad_Hyades, Cluster = tyc_pam_clustk2$PAM_clust)
 
-diss_mahalanobis_tyc <-tyc1[,2:9] %>% mahalanobis(., tyc1_means, tyc1_Sx)
+#######         PCA
 
-
-PAM_TYC_Mahalanobis <- PAM_loop(diss_mahalanobis_tyc,
-                          data = hip1[,2:9],
-                          k = 20)
+fviz_pca_ind(prcomp(tyc_pam_clustk2[,-c(1,9,10)]), 
+                title = "PCA - Tycho PAM",
+                habillage = tyc_pam_clustk2$PAM_clust,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
 
 
-```
+#######         Silhouette
 
-```{r}
-SSE <- PAM_TYC_Mahalanobis[[1]]
-Sil <- PAM_TYC_Mahalanobis[[2]]
-par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+sil_tyc_pamk2_final <- silhouette(tyc_pam_clustk2$PAM_clust, diss_euclid_tyc)
+
+plot(sil_tyc_pamk2_final, main="Silhouette, k = 2",col=1:2 ,border = NA)
 
 ```
 
 
 ```{r}
 
+tyc_pam_clustk2 %>% cbind(., sil_width = sil_tyc_pamk2_final[,3]) %>% filter(., Symbad_Hyades == TRUE) %>% select(., c(10,11,12)) %>% arrange(desc(sil_width))
+
+```
+
+
+```{r}
+PAM_TYC_Euclid_k6 <- pam(diss_euclid_tyc, 6, diss = T)
+
+tyc1$Symbad_Hyades[is.na(tyc1$Symbad_Hyades)] <- FALSE
+
+tyc_pam_clustk6 <- cbind(tyc1, PAM_clust = PAM_TYC_Euclid_k6$clustering)
+
+#######         Hyades vs Cluster analysis
+
+table(Symbad = tyc_pam_clustk6$Symbad_Hyades, Cluster = tyc_pam_clustk6$PAM_clust)
+
+#######         PCA
+
+fviz_pca_ind(prcomp(tyc_pam_clustk6[,-c(1,9,10,11)]), 
+                title = "PCA - Tycho PAM",
+                habillage = tyc_pam_clustk6$PAM_clust,
+                palette = "uchicago",
+                geom = "point", 
+                ggtheme = theme_classic(),
+                legend = "bottom", axes = c(1,2))
+
+
+#######         Silhouette
+
+sil_tyc_pamk6_final <- silhouette(tyc_pam_clustk6$PAM_clust, diss_euclid_tyc)
+
+plot(sil_tyc_pamk6_final, main="Silhouette, k = 6",col=1:6 ,border = NA)
+
+```
+
+```{r}
+tyc_pam_clustk6 %>% cbind(., sil_width = sil_tyc_pamk6_final[,3]) %>% filter(., Symbad_Hyades == TRUE) %>% select(., c(10,11,12)) %>% arrange(desc(sil_width))
+
 ```
 
 ```{r}
 
-```
+tyc_pam_clustk2 <- tyc_pam_clustk2 %>% cbind(.,
+                                                 sil_clust = sil_tyc_pamk2_final[,1],
+                                                 sil_neigh = sil_tyc_pamk2_final[,2],
+                                                 sil_width = sil_tyc_pamk2_final[,3]
+                                                 )
 
-```{r}
 
-```
+tyc_pam_clustk2 <- tyc_pam_clustk2 %>% filter(., sil_clust == 2 & sil_width > 0 ) %>% select(., -c(2:9,12:13)) 
 
-```{r}
+tyc_pam_clustk2
+write_csv(tyc_pam_clustk2, "tyc_pam_clustk2.csv")
 
-```
-
-```{r}
-
-```
-
-```{r}
 
 ```
 
