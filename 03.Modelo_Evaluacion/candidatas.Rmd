@@ -54,8 +54,8 @@ __OBS:__ Como podemos ver en el grafico anterior, las estrellas detectadas en DB
 
 ```{r}
 cand.list.hip<- pam %>% select(HIP)
-write.csv(cand.list.hip, "Candidatas Hyades - Hipparcos.csv",row.names = F)
+write.csv(cand.list.hip, "..\\05.Trabajo_Final\\Candidatas Hyades - Hipparcos.csv",row.names = F)
 cand.list.tyc<-read.csv("tyc_pam_clustk2.csv") %>% select(recno)
-write.csv(cand.list.tyc, "Candidatas Hyades - Tycho.csv", row.names = F)
+write.csv(cand.list.tyc, "..\\05.Trabajo_Final\\Candidatas Hyades - Tycho.csv", row.names = F)
 ```
 
