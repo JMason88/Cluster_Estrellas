@@ -1,0 +1,49 @@
+---
+title: "VIsualizacion"
+author: "Fernando Menendez"
+date: "October 28, 2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(summarytools)
+library(mlr)
+```
+
+```{r , echo=FALSE}
+# Busqueda de estrellas idénticas en diferentes catalogos
+
+# Carga de archivos en R
+#
+# Carga del catalogo Hipparcos
+hip <- read_xlsx("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 2)
+
+#Carga del Catalogo Tycho
+tycho <- read_xlsx("..//00.Datos_y_TP//hyades_source.xlsx", sheet = 3)
+
+```
+
+```{r}
+dfSummary(hip, plain.ascii = F)
+```
+
+
+```{r}
+summarizeColumns(hip)
+```
+
+
+
+```{r}
+dfSummary(tycho, plain.ascii = F)
+```
+
+```{r}
+summarizeColumns(tycho)
+```
+
+

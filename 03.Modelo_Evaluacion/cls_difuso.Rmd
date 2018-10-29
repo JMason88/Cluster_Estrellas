@@ -22,6 +22,7 @@ library(gridExtra)
 library(ggpubr)
 library(cluster)
 library(ggthemes)
+library(UpSetR)
 source("FUZZY_Loop.r")
 ```
 
@@ -60,8 +61,6 @@ Los experimentos con el algoritmo se construyen a partir de los siguientes pasos
 1. Todas las variables de Hiparcos
 2. Todas las variables, con excepcion de las medidas de posicion
 
-*Dentro de estas dos divisiones se seleccionaron para trabajar las distancias Euclidea y de Gower.
-
 *Para cada salida de la hyperparametrizacion, se identifica visualmente si alguno de los test es aceptable para producir candidatos
 
 
@@ -76,7 +75,6 @@ summarizeColumns(hip)
 hip.scaled<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades)) %>%
   select(-HIP,-Symbad_Hyades)
 hip.eucl<-daisy(as.matrix(hip.scaled), metric = "euclidean")
-hip.gower<-daisy(as.matrix(hip.scaled), metric = "gower")
 ```
 
 
@@ -132,51 +130,7 @@ cand.eucl<-inner_join(cand1,cand2, by = "HIP") %>% inner_join(cand3,by="HIP") %>
 
 
 
-##Experimento 2: Todas las Variables con distancia de Gower
-
-```{r,warning=FALSE,error=FALSE}
-fzzy_gower<-run_fuzzy(hip.gower,2:10)
-
-```
-
-```{r,warning=FALSE}
-fzzy_gower$coef$test<-as.factor(fzzy_gower$coef$test)
-fzzy_gower.rt<-fzzy_gower$clustering %>%
-  mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% 
-  group_by(test) %>% filter(Hyades==max(Hyades)) %>% ungroup() %>%   
-  inner_join(fzzy_gower$coef, by="test") #%>% filter(dunn_coeff>.7)
-sorted.test<-order(levels(as.factor(fzzy_gower.rt$test)))
-fzzy_gower.rt$test=factor(fzzy_gower.rt$test,levels = sorted.test)
-fzzy_gower.rt
-```
-
-```{r,fig.width=9}
-ggplot(data = fzzy_gower.rt, aes(x=test)) +
-  geom_bar(aes(y=Hyades),stat="identity") +
-  geom_point(aes(y=dunn_coeff/2*100,size=total),color="green", stat = "identity") +
-  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
-                     sec.axis = sec_axis(~.*2/100,breaks = seq(0,1,.20), name = "Coeficiente de Dunn")) +
-#  ylab("Total de Hyades en Cluster") +
-  xlab("Nro de Test") +
-  labs(size="Elementos en Clusters") +
-  scale_fill_continuous(breaks = seq(250,1000,250)) +
-#  scale_x_continuous(breaks=seq(1,150,1)) +
-  theme_tufte()
-```
-
-__OBS:__ Los experimentos 1, 2 y 3 muestran resultados similares, variando solo en ellos la funcion de membresia por lo que seleccionamos el que tiene mayor coeficiente de Dunn
-
-```{r}
-fzzy_gower.rt %>% filter(test %in% c(1,2,3))
-```
-
-```{r}
-fuzz1<-run_fuzzy_one(hip.gower,2,1.1)
-cand1<-fuzz1 %>% filter(Cluster==1,Hyades==FALSE)
-cand.gower<-cand1 %>% select(HIP)
-```
-
-##Experimento 3: Sin medidas de posicion con distancia Euclidea
+##Experimento 2: Sin medidas de posicion con distancia Euclidea
 
 ###Se extraen las medidas de posicion, se normalizan las variables y se recalculan las matrices de distancia
 
@@ -184,7 +138,6 @@ cand.gower<-cand1 %>% select(HIP)
 hip.scaled2<-hip %>% mutate_at(.funs = funs(scale(.,center = T, scale = T)), .vars = vars(-HIP,-Symbad_Hyades)) %>%
   select(-HIP,-Symbad_Hyades,-RA_J2000,-DE_J2000)
 hip.eucl2<-daisy(as.matrix(hip.scaled2), metric = "euclidean")
-hip.gower2<-daisy(as.matrix(hip.scaled2), metric = "gower")
 ```
 
 
@@ -235,50 +188,6 @@ cand.eucl2<-inner_join(cand1,cand2, by = "HIP") %>% inner_join(cand3,by="HIP") %
 ```
 
 
-##Experimento 4: Sin medidas de posicion con distancia de Gower
-
-```{r,warning=FALSE,error=FALSE}
-nopos_gower<-run_fuzzy(hip.gower2,2:10)
-
-```
-
-```{r,warning=FALSE}
-nopos_gower$coef$test<-as.factor(nopos_gower$coef$test)
-nopos_gower.rt<-nopos_gower$clustering %>%
-  mutate(total=Hyades + No_Hyades,ratio=round(Hyades/total,2)) %>% 
-  group_by(test) %>% filter(Hyades==max(Hyades)) %>% ungroup() %>%   inner_join(nopos_gower$coef, by="test")
-sorted.test<-order(levels(as.factor(nopos_gower.rt$test)))
-nopos_gower.rt$test=factor(nopos_gower.rt$test,levels = sorted.test)
-nopos_gower.rt
-```
-
-```{r,fig.width=9}
-ggplot(data = nopos_gower.rt, aes(x=test)) +
-  geom_bar(aes(y=Hyades),stat="identity") +
-  geom_point(aes(y=dunn_coeff/2*100,size=total),color="green", stat = "identity") +
-  scale_y_continuous(name="Total de Hyades en Cluster",breaks = seq(0,50,5),
-                     sec.axis = sec_axis(~.*2/100,breaks = seq(0,1,.20), name = "Coeficiente de Dunn")) +
-#  ylab("Total de Hyades en Cluster") +
-  xlab("Nro de Test") +
-  labs(size="Elementos en Clusters") +
-  scale_fill_continuous(breaks = seq(250,1000,250)) +
-#  scale_x_continuous(breaks=seq(1,150,1)) +
-  theme_tufte()
-```
-
-__OBS:__ Los experimentos 22 y 51 denotan la mayor concentracion de hyades en un cluster
-
-```{r}
-nopos_eucl.rt %>% filter(test %in% c(22,51))
-```
-
-```{r}
-fuzz1<-run_fuzzy_one(hip.gower2,4,1.2)
-cand1<-fuzz1 %>% filter(Cluster==4,Hyades==FALSE)
-fuzz2<-run_fuzzy_one(hip.gower2,7,1.1)
-cand2<-fuzz2 %>% filter(Cluster==7,Hyades==FALSE)
-cand.gower2<-inner_join(cand1,cand2, by = "HIP") %>%  select(HIP)
-```
 
 ##Revision de Candidatas
 
@@ -287,18 +196,14 @@ Se cruzan las estrellas candidatas de los experimentos resaltados anteriormente
 ```{r}
 cand.list.eucl <- cand.eucl %>% 
   inner_join(cand.eucl2, by = "HIP")
-cand.list.gower<-  cand.gower %>%
-  inner_join(cand.gower2, by = "HIP") 
-cand.list<-cand.list.eucl %>% inner_join(cand.list.gower, by="HIP")
-cand.list
+cand.list.eucl
 ```
 
-Como se puede apreciar en la salida anterior solo una estrella, esta incluida en los clusters generados por distancia euclidea y Gower
+
 
 
 ```{r, include=FALSE}
 write.csv(cand.list.eucl, "FUZZY - Candidatas Euclideas.csv")
-write.csv(cand.list.gower, "FUZZY - Candidatas Gower.csv")
 ```
 
 ```{r, include=FALSE}
@@ -307,9 +212,17 @@ cand.dbscan$X<-NULL
 ```
 
 ```{r}
-cand.list.eucl %>% 
-  inner_join(cand.dbscan, by = "HIP")
-cand.list.gower %>%
-  inner_join(cand.dbscan, by = "HIP") 
+cand.dbscan$source<-"DBSCAN"
+cand.list.eucl$source<-"FUZZY"
 ```
 
+
+```{r}
+listInput<-list(DBSCAN=cand.dbscan$HIP,FUZZY=cand.list.eucl$HIP)
+upset(fromList(listInput), order.by = "freq",point.size = 4, line.size = 2, 
+    mainbar.y.label = "Interseccion de Candidastas", sets.x.label = "Método",
+    sets.bar.color=c("blue","orange"))
+
+```
+
+__OBS:__ Como podemos ver en el grafico anterior, la primera columna muestras el numero de estrellas candidatas que solo pertenecen a la lista de FUZZY y la segunda muestra las que estan tanto en FUZZY como DBSCAN, como en este caso __todas las estrellas detectadas por la ejecucion de DBSCAN estan incluidas en la salida de del Clustering difuso__ , no hay una tercera barra con estrellas solo presentes en DBSCAN

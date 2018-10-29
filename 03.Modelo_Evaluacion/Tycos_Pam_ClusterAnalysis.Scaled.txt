@@ -1,0 +1,96 @@
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster2)
+       Cluster
+Hyades      1     2
+  FALSE 10651  3124
+  TRUE     47     2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster3)
+       Cluster
+Hyades     1    2    3
+  FALSE 3435 7443 2897
+  TRUE     4   43    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster4)
+       Cluster
+Hyades     1    2    3    4
+  FALSE 3325 3718 3835 2897
+  TRUE     4   10   33    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster5)
+       Cluster
+Hyades     1    2    3    4    5
+  FALSE 3262 3627 3131 1010 2745
+  TRUE     4   10   33    0    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster6)
+       Cluster
+Hyades     1    2    3    4    5    6
+  FALSE 3260 3480 1817  981 2295 1942
+  TRUE     4   10    4   29    0    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster7)
+       Cluster
+Hyades     1    2    3    4    5    6    7
+  FALSE 2570 3480 1808  985 1840 1157 1935
+  TRUE     3   10    1   16   17    0    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster8)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8
+  FALSE 1496 1660  978 1855 1156 1913 1722 2995
+  TRUE     3    1    7    2    1   24    9    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster9)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9
+  FALSE 1496 1660  973 1255 1127 1933 1701 2995  635
+  TRUE     3    1    7    2    0    4   30    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster10)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10
+  FALSE 1443 1522  786  508 1234 1111 1725 2906 1913  627
+  TRUE     3    0    2    6    2    0    1   33    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster11)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11
+  FALSE 1441 1266  787  511 1230 1111 1725 2348 1217 1512  627
+  TRUE     3    0    1    3    6    0    1   33    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster12)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12
+  FALSE 1425 1193  615  513  346 1195 1103 1714 2334 1215 1500  622
+  TRUE     3    0    1    1    5    3    0    1   33    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster13)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13
+  FALSE 1411 1193  615  513  347 1194 1042  613 1176 2334 1215 1500  622
+  TRUE     3    0    1    1    4    4    0    1    0   33    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster14)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14
+  FALSE 1245 1062  533  481  344 1191 1041  614 1174  751 1183 2034 1500  622
+  TRUE     3    0    0    1    1    7    1    0    1    3   30    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster15)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15
+  FALSE 1245 1054  532  481  344  815 1039  614 1174  754 1184 2030  878  622 1009
+  TRUE     3    0    0    1    1    6    2    0    1    0   29    4    0    0    2
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster16)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16
+  FALSE 1245 1054  529  481  334  815 1039  614 1174  754 1184 2030  878  575 1009   60
+  TRUE     3    0    0    1    1    6    2    0    1    0   29    4    0    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster17)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17
+  FALSE 1245 1054  432  451  335  239 1027  613 1175  753 1209 2005  878  522  774 1009   54
+  TRUE     3    0    0    1    0    1    7    1    0    1    4   29    0    0    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster18)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18
+  FALSE 1227 1054  432  451  335  239 1027  613 1175  738 1207 1243  797  878  522  774 1009   54
+  TRUE     3    0    0    1    0    1    7    1    0    1    4   29    0    0    0    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster19)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19
+  FALSE 1226  995  432  443  335  239  605  610  900  739  784 1207 1243  797  873  522  770 1001   54
+  TRUE     3    0    0    1    0    1    6    1    1    0    1    4   29    0    0    0    0    2    0
+> table(Hyades = Clusterings$Symbad_Hyades, Cluster = Clusterings$cluster20)
+       Cluster
+Hyades     1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20
+  FALSE 1226  995  432  443  335  236  604  610  900  739  612 1211 1239  797  873  423  745 1001  300   54
+  TRUE     3    0    0    1    0    1    6    1    1    0    1    0   33    0    0    0    0    2    0    0  
+  
