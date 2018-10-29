@@ -1,0 +1,57 @@
+---
+title: "Seleccion Final de Candidatas"
+author: "Fernando Menendez"
+date: "October 28, 2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(UpSetR)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+```
+# _Selecccion Final de Candidatas_
+
+
+```{r}
+pam<-read.csv("hip_pamk5_clust.csv") %>% filter(Symbad_Hyades==F)
+dbs<-read.csv("DBSCAN - Candidatas.csv")
+fzy<-read.csv("FUZZY - Candidatas.csv")
+```
+
+```{r,include=FALSE}
+dbs$X<-NULL
+fzy$X<-NULL
+dbs$source<-"DBSCAN"
+fzy$source<-"FUZZY"
+pam$source<-"PAM"
+```
+
+```{r}
+cand.list<- dbs %>% rbind(fzy) %>% rbind(pam[,c("HIP","source")])
+ggplot(data=cand.list) +
+  geom_bar(aes(x=source)) +
+#  geom_text(aes(label=len), vjust=-0.3, size=3.5)+
+  scale_fill_manual(values=c("blue","orange","maroon")) +
+  theme_tufte()
+```
+
+```{r}
+listInput<-list(DBSCAN=dbs$HIP,FUZZY=fzy$HIP,PAM=pam$HIP)
+upset(fromList(listInput), order.by = "freq",point.size = 4, line.size = 2, 
+    mainbar.y.label = "Interseccion de Candidastas", sets.x.label = "Método",
+    sets.bar.color=c("blue","orange","maroon"))
+```
+
+
+__OBS:__ COmo podemos ver en el grafico anterior, las estrellas detectadas en DBSCAN se encuentran tanto en PAM como en clustering difuso. Los 3 metodos comparten un total de __80__ estrellas que conforma nuestra lista final de candidatas.
+
+```{r}
+cand.list.final<- fzy %>% inner_join(pam, by="HIP") %>% select(HIP)
+write.csv(cand.list.final, "Candidatas Hyades.csv")
+```
+

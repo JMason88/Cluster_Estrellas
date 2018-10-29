@@ -203,7 +203,7 @@ cand.list.eucl
 
 
 ```{r, include=FALSE}
-write.csv(cand.list.eucl, "FUZZY - Candidatas Euclideas.csv")
+write.csv(cand.list.eucl, "FUZZY - Candidatas.csv")
 ```
 
 ```{r, include=FALSE}
