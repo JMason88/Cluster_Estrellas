@@ -91,7 +91,7 @@ kmeans_euclid
 
 De todos los índice y métricas que el NbClust corrió, 7 de ellos propusieron 2 clústers como la partición que mejor ajusta a los datos.
 
-A continuación se guarda el modelo de K-medias para k=2 y se procede a graficar la proyección de los clúster en los ejes de las componentes principales.
+A continuación se guarda el modelo de K-medias para k=2 y se procede a graficar la proyección de los clúster en los ejes de las componentes principales (son los anteriores).
 
 
 ```{r}
@@ -102,13 +102,15 @@ hip_kmeans_final <- hip1 %>% select(., -c(1,9)) %>% kmeans(., 2)
 hip_kmeans_clust1 <- cbind(hip1, kmeans_clust = hip_kmeans_final$cluster)
 table(Symbad = hip_kmeans_clust1$Symbad_Hyades, Cluster = hip_kmeans_clust1$kmeans_clust)
 
-fviz_pca_ind(prcomp(hip_kmeans_clust1[,-c(1,9,10)]), 
+PCA_hip_kmeans <- prcomp(hip_kmeans_clust1[,-c(1,9,10)])
+
+fviz_pca(PCA_hip_kmeans, 
                 title = "PCA - Hipparcos Kmeans",
                 habillage = hip_kmeans_final$cluster,
                 palette = "uchicago",
                 geom = "point", 
                 ggtheme = theme_classic(),
-                legend = "bottom", axes = c(1,2))
+                legend = "bottom", axes = c(1,2), addEllipses = F)
 ```
 
 De los resultados del Kmeans se extrae que de la clusterización, 49 Hyades han sido clasifciadas dentro de un mismo clúster: el número 2. Dentro del cluster número 2 han sido agrupadas otras 315 estrellas que podrían resultar en potenciales candidatas a formar parter del clúster de estrellas Hyades.
@@ -146,7 +148,7 @@ hip_kmeans_clust1 %>% filter(., sil_clust == 2) %>% select(., -c(1:8,10:12))
 
 Del listado del clúster 2 se desprende que las que tienen Silhouette mas bajo son aquellas que han sido identificadas como verdaderas Hyades.
 
-Con lo cual es probable que el clúster hasta acá aqui analizado posea algún grupo de estrellas no compatible con las características de la Hyades o mucho mas cercanas entre sí que las Hyades mismas.
+Con lo cual es probable que el clúster hasta aqui analizado posea algún grupo de estrellas no compatible con las características de la Hyades o mucho mas cercanas entre sí que las Hyades mismas.
 
 Por último se procederá a guardar los resultados finales como checkpoint del trabajo hasta aqui realizado en una salida de CSV.
 
@@ -168,7 +170,7 @@ source('PAM_loop.r')
 diss_euclid_hip <-hip1[,2:8] %>% dist(., method = "euclidian")
 
 
-PAM_HIP_Euclid <- PAM_loop(diss_euclid_hip, hip1[,2:8], 20)
+PAM_HIP_Euclid <- PAM_loop(diss_euclid_hip, hip1[,2:8], 10)
 
 ```
 
@@ -176,8 +178,8 @@ PAM_HIP_Euclid <- PAM_loop(diss_euclid_hip, hip1[,2:8], 20)
 SSE <- PAM_HIP_Euclid[[1]]
 Sil <- PAM_HIP_Euclid[[2]]
 par(mfrow=c(1,2))
-plot(2:(21), Sil , type="b", xlab="k", sub="Silhouette")
-plot(2:(21), SSE , type="b", xlab="k", sub = "SSE")
+plot(2:(11), Sil , type="b", xlab="k", sub="Silhouette")
+plot(2:(11), SSE , type="b", xlab="k", sub = "SSE")
 
 ```
 
